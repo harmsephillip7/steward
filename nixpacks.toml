@@ -1,5 +1,5 @@
-# Railway build config for NestJS in an npm workspace monorepo
-# Set "Root Directory" to "/" in Railway dashboard
+# Railway build config for NestJS API in an npm workspace monorepo
+# In Railway dashboard: set Root Directory to "/" for the @steward/api service
 
 [phases.install]
 cmds = ["npm install"]
