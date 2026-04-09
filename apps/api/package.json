@@ -4,6 +4,7 @@
   "description": "Steward NestJS API",
   "private": true,
   "scripts": {
+    "prebuild": "npx tsc -p ../../packages/shared/tsconfig.json",
     "build": "nest build",
     "start": "node dist/main",
     "start:dev": "nest start --watch",
