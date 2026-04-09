@@ -1,0 +1,26 @@
+{
+  "name": "steward",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Steward — Christian values-based financial advisory & screening platform",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:web": "npm run dev --workspace=apps/web",
+    "dev:api": "npm run start:dev --workspace=apps/api",
+    "dev": "concurrently \"npm run dev:web\" \"npm run dev:api\"",
+    "build:web": "npm run build --workspace=apps/web",
+    "build:api": "npm run build --workspace=apps/api",
+    "lint": "npm run lint --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.0"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  }
+}

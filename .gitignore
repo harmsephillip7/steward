@@ -1,0 +1,50 @@
+# Steward — Dependencies
+node_modules/
+.npm
+
+# Build outputs
+dist/
+.next/
+out/
+build/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+*.egg-info/
+dist/
+.eggs/
+
+# Environment
+.env
+.env.local
+.env.*.local
+*.env
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+
+# IDEs
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Python venv
+.venv/
+venv/
+env/
+
+# Docker volumes
+postgres_data/
+
+# Coverage
+coverage/
+.nyc_output/
+
+# TypeScript
+*.tsbuildinfo
