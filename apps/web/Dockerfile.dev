@@ -1,0 +1,20 @@
+FROM node:20-alpine
+
+WORKDIR /workspace
+
+# Copy root workspace manifests first for layer caching
+COPY package.json package-lock.json* ./
+COPY packages/shared/package.json ./packages/shared/
+COPY apps/web/package.json ./apps/web/
+
+RUN npm install
+
+# Copy source
+COPY packages/shared ./packages/shared
+COPY apps/web ./apps/web
+
+WORKDIR /workspace/apps/web
+
+EXPOSE 3000
+
+CMD ["npx", "next", "dev"]

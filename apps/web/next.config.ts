@@ -1,0 +1,12 @@
+import type { NextConfig } from 'next';
+
+const nextConfig: NextConfig = {
+  transpilePackages: ['@steward/shared'],
+  images: {
+    remotePatterns: [
+      { protocol: 'https', hostname: '*.amazonaws.com' },
+    ],
+  },
+};
+
+export default nextConfig;
