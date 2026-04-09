@@ -1,0 +1,11 @@
+# Railway build config for NestJS in an npm workspace monorepo
+# Set "Root Directory" to "/" in Railway dashboard
+
+[phases.install]
+cmds = ["npm install"]
+
+[phases.build]
+cmds = ["npx tsc -p packages/shared/tsconfig.json", "cd apps/api && npx nest build"]
+
+[start]
+cmd = "cd apps/api && node dist/main"
