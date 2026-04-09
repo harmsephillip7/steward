@@ -649,3 +649,150 @@ Vercel will only deploy after this CI check passes if you enable **Required stat
 | You (owner) | GitHub repo owner, Vercel Team owner, invite sent to partner |
 | Partner | GitHub account added as repo collaborator, Vercel Team member (accept invite) |
 | Both | Clone the repo, set up local `.env` files, push feature branches |
+
+---
+
+## Development Build-Out Plan — Execution Roadmap
+
+> This section is the active execution roadmap. Each phase builds directly on the previous. Phases 1–3 focus on the web frontend (the biggest gap). Phases 4–6 complete advanced features. Phase 7 hardens the API. Phase 8 upgrades ingestion. Phase 9 prepares for production.
+
+---
+
+### Phase 1 — Foundation & Shared Infrastructure
+
+*Everything else depends on this. All steps ran in parallel on 9 April 2026.*
+
+**Decisions:**
+- State management: **TanStack Query** — fits the server-heavy data model, no Redux needed
+- UI library: **Shadcn/ui + Tailwind** (already referenced above)
+- Charts: **Recharts** — already installed
+- Notifications: **Sonner** toast library
+- Client Portal: navigation link available now, detail built later
+- Mobile app: excluded from this roadmap
+
+**Steps completed:**
+
+1. Install `@tanstack/react-query`, `@tanstack/react-query-devtools`, `sonner`
+2. Install Shadcn/ui via CLI (`init --defaults`) + add components: `button card input label badge table select tabs dialog sheet form separator skeleton dropdown-menu avatar`
+3. Create `apps/web/components.json` + update `globals.css` with Shadcn CSS variables
+4. Update `tailwind.config.js` for Shadcn colour tokens
+5. Update `apps/web/src/lib/utils.ts` — `cn()` utility
+6. Update `apps/web/src/app/providers.tsx` — wrap with `QueryClientProvider` + `<Toaster />`
+7. Build `apps/web/src/components/layout/Sidebar.tsx` — full nav with all routes + Client Portal link
+8. Build `apps/web/src/components/layout/Topbar.tsx` — advisor name, firm, logout
+9. Create `apps/web/src/lib/hooks/` — typed TanStack Query hooks for all API endpoints
+
+---
+
+### Phase 2 — Core Dashboard Pages
+
+**2A — Dashboard Home** (`dashboard/page.tsx`)
+- Real stat cards: Total Clients, Portfolios Screened, Pending ROAs, Reports Generated
+- Recent clients table (last 5, KYC status badges)
+- Recent audit activity feed
+
+**2B — Clients Module**
+- `clients/page.tsx` — searchable/sortable table, KYC badges, "New Client" CTA
+- `clients/new/page.tsx` — multi-step form: Personal → Financials → KYC flags
+- `clients/[id]/page.tsx` — tabbed detail: Profile | Portfolios | Plans | ROAs | Audit
+
+**2C — Portfolios Module**
+- `portfolios/page.tsx` — card grid by client, total value, screening badge
+- `portfolios/new/page.tsx` — client selector + fund allocations (must sum to 100%)
+- `portfolios/[id]/page.tsx` — fund breakdown table, screening summary, "Run Screening" button
+
+**2D — Funds Module**
+- `funds/page.tsx` — filterable browser (asset_class, region), fund info cards
+- `funds/[id]/page.tsx` — holdings table with compromise flags
+- `funds/upload/page.tsx` — PDF upload → ingestion polling → extracted holdings preview
+
+---
+
+### Phase 3 — Financial Planning (FNA) Wizard
+
+- `fna/page.tsx` — multi-step wizard per client:
+  - Step 1: Risk Questionnaire (10 questions, 1–5 scale) from `GET /fna/questions/risk`
+  - Step 2: Behavioural Bias (8 questions) from `GET /fna/questions/behaviour`
+  - Step 3: Financial inputs (income, estate value, liquidity needs)
+  - Step 4: Results — Risk Profile card, Asset Allocation pie, Behaviour Radar chart, full Tax Summary
+- Reusable `TaxSummaryCard` component (income tax bracket, CGT, estate duty)
+- `POST /fna/clients/:clientId/plan`
+
+---
+
+### Phase 4 — Screening & Replacement UI
+
+- **Screening Results** (embedded in Portfolio Detail):
+  - Donut chart: clean% vs compromised%
+  - Category exposure bar chart per compromise category
+  - Pass/Fail badge per screening mode
+- **CategoryBreakdownTable** component — expandable rows per category with affected funds
+- **Replacement Suggestions** page/panel:
+  - Side-by-side fund comparison cards (original vs suggested)
+  - Similarity score, exposure reduction %
+  - "Swap Fund" action
+- Wire `POST /portfolios/:id/replacements`
+
+---
+
+### Phase 5 — Compliance & Reports
+
+- **Compliance page** (`compliance/page.tsx`):
+  - ROA list: `GET /compliance/roa/client/:clientId`
+  - Create ROA form (client, date, summary) → `POST /compliance/roa`
+  - Digital signature capture (`signature_pad`) → `PATCH /compliance/roa/:id/sign`
+- **Audit Trail** table — action, client, advisor, timestamp, expandable metadata
+- **Reports page** (`reports/page.tsx`):
+  - Generate Report button → `POST /reports/portfolio`
+  - Report list with download link
+- **API: Complete Puppeteer PDF generation** in `reports.service.ts` — HTML template already written, pipe through `puppeteer.pdf()`, upload to S3, return signed URL
+
+---
+
+### Phase 6 — Settings & Advisor Branding
+
+- Wire `settings/page.tsx` to `GET /advisors/me` (populate on load) + `PATCH /advisors/me/branding` (save)
+- Logo upload via S3 presigned URL — preview in Topbar and reports
+
+---
+
+### Phase 7 — API Hardening
+
+*Runs in parallel with Phases 3–6.*
+
+| # | Change | File |
+|---|--------|------|
+| 1 | **ComplianceGuard** — block advice endpoints without full KYC | `modules/compliance/guards/compliance.guard.ts` |
+| 2 | **Pagination** — `page` + `limit` on `GET /clients`, `GET /funds`, `GET /audit` | relevant services |
+| 3 | **Global Exception Filter** — consistent `{ statusCode, message, timestamp }` error shape | `main.ts` |
+| 4 | **Rate Limiting** — `@nestjs/throttler` on login/register (5 req/min) | `app.module.ts` |
+| 5 | **JWT expiry** — set `expiresIn: '8h'` | `auth.module.ts` |
+| 6 | **DTO whitelist** — `whitelist: true, forbidNonWhitelisted: true` globally | `main.ts` |
+
+---
+
+### Phase 8 — Ingestion Service Upgrade
+
+- Wire Python ingestion service to fund upload page
+- Replace in-memory `_jobs` dict with Redis for production reliability
+- Improve PDF parser to handle Allan Gray / Coronation SA fact sheet formats
+- Support scheduled re-ingestion of fund fact sheets
+
+---
+
+### Phase 9 — Production Readiness
+
+1. Generate TypeORM migrations (create `apps/api/src/config/data-source.ts`)
+2. Audit all environment variables + update `.env.example` files
+3. Complete Docker Compose with all 4 services + health checks
+4. Deploy: Vercel (web), Railway/ECS (API + ingestion), RDS/Supabase (Postgres)
+
+---
+
+### Client Portal (Future)
+
+Available as a navigation link in the sidebar. Full detail to be built later:
+- Separate auth — client credentials, not advisor
+- Read-only views: portfolio value, clean % score, fund list, downloadable reports
+- Fully branded with advisor firm name + logo
+- Routes under `/portal/*`

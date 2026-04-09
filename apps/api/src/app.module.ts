@@ -14,6 +14,7 @@ import { FinancialPlanningModule } from './modules/financial-planning/financial-
 import { ComplianceModule } from './modules/compliance/compliance.module';
 import { ReportsModule } from './modules/reports/reports.module';
 import { AuditModule } from './modules/audit/audit.module';
+import { AiScreeningModule } from './modules/ai-screening/ai-screening.module';
 
 // Entities
 import { Advisor } from './modules/advisors/entities/advisor.entity';
@@ -68,6 +69,7 @@ import { IngestionJob } from './modules/funds/entities/ingestion-job.entity';
     ComplianceModule,
     ReportsModule,
     AuditModule,
+    AiScreeningModule,
   ],
   controllers: [AppController],
   providers: [AppService],
