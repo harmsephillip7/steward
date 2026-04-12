@@ -53,7 +53,7 @@ import { IngestionJob } from './modules/funds/entities/ingestion-job.entity';
         ],
         synchronize: config.get<string>('NODE_ENV') !== 'production',
         logging: false,
-        ssl: { rejectUnauthorized: false },
+        ssl: config.get<string>('NODE_ENV') === 'production' ? { rejectUnauthorized: false } : false,
       }),
       inject: [ConfigService],
     }),
