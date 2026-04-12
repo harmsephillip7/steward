@@ -1,18 +1,22 @@
 'use client';
 
+import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useClient } from '@/lib/hooks/use-clients';
+import { useUpdateCompliance } from '@/lib/hooks/use-compliance';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
+import { Label } from '@/components/ui/label';
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import {
-  ArrowLeft, User, CheckCircle, XCircle, Briefcase, FileText, Calendar,
+  ArrowLeft, User, CheckCircle, XCircle, Briefcase, FileText, Calendar, Pencil, Shield,
 } from 'lucide-react';
 
 function StatusIcon({ done }: { done: boolean }) {
@@ -44,6 +48,14 @@ export default function ClientDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const { data: client, isLoading } = useClient(id);
+  const updateCompliance = useUpdateCompliance();
+  const [editCompliance, setEditCompliance] = useState(false);
+  const [compForm, setCompForm] = useState({
+    fica_complete: false,
+    kyc_complete: false,
+    source_of_wealth_declared: false,
+    risk_profile: '',
+  });
 
   if (isLoading) {
     return (
@@ -90,18 +102,27 @@ export default function ClientDetailPage() {
           </h1>
           <p className="text-sm text-gray-500 mt-1">{client.email}</p>
         </div>
-        <Badge
-          variant="outline"
-          className={
-            client.risk_profile === 'aggressive'
-              ? 'border-red-300 text-red-700'
-              : client.risk_profile === 'moderate_aggressive'
-              ? 'border-amber-300 text-amber-700'
-              : 'border-green-300 text-green-700'
-          }
-        >
-          {riskLabel(client.risk_profile)}
-        </Badge>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => router.push(`/fna/${client.id}`)}
+          >
+            <FileText className="mr-1.5 h-3.5 w-3.5" /> New FNA
+          </Button>
+          <Badge
+            variant="outline"
+            className={
+              client.risk_profile === 'aggressive'
+                ? 'border-red-300 text-red-700'
+                : client.risk_profile === 'moderate_aggressive'
+                ? 'border-amber-300 text-amber-700'
+                : 'border-green-300 text-green-700'
+            }
+          >
+            {riskLabel(client.risk_profile)}
+          </Badge>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
@@ -145,7 +166,25 @@ export default function ClientDetailPage() {
         {/* Compliance status */}
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Compliance</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center justify-between">
+              <span className="flex items-center gap-2"><Shield className="h-4 w-4" /> Compliance</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7"
+                onClick={() => {
+                  setCompForm({
+                    fica_complete: client.fica_complete,
+                    kyc_complete: client.kyc_complete,
+                    source_of_wealth_declared: client.source_of_wealth_declared,
+                    risk_profile: client.risk_profile ?? '',
+                  });
+                  setEditCompliance(true);
+                }}
+              >
+                <Pencil className="h-3.5 w-3.5" />
+              </Button>
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {[
@@ -260,6 +299,74 @@ export default function ClientDetailPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Compliance Edit Dialog */}
+      <Dialog open={editCompliance} onOpenChange={setEditCompliance}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Compliance — {client.first_name} {client.last_name}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {[
+              { label: 'FICA Complete', key: 'fica_complete' as const },
+              { label: 'KYC Complete', key: 'kyc_complete' as const },
+              { label: 'Source of Wealth Declared', key: 'source_of_wealth_declared' as const },
+            ].map(({ label, key }) => (
+              <div key={key} className="flex items-center justify-between">
+                <Label>{label}</Label>
+                <button
+                  type="button"
+                  onClick={() => setCompForm((f) => ({ ...f, [key]: !f[key] }))}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                    compForm[key] ? 'bg-green-600' : 'bg-gray-200'
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      compForm[key] ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+              </div>
+            ))}
+            <div className="space-y-1.5">
+              <Label>Risk Profile</Label>
+              <select
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                value={compForm.risk_profile}
+                onChange={(e) => setCompForm((f) => ({ ...f, risk_profile: e.target.value }))}
+              >
+                <option value="">Not set</option>
+                <option value="conservative">Conservative</option>
+                <option value="moderate_conservative">Moderate Conservative</option>
+                <option value="moderate">Moderate</option>
+                <option value="moderate_aggressive">Moderate Aggressive</option>
+                <option value="aggressive">Aggressive</option>
+              </select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditCompliance(false)}>Cancel</Button>
+            <Button
+              onClick={async () => {
+                await updateCompliance.mutateAsync({
+                  clientId: client.id,
+                  dto: {
+                    fica_complete: compForm.fica_complete,
+                    kyc_complete: compForm.kyc_complete,
+                    source_of_wealth_declared: compForm.source_of_wealth_declared,
+                    risk_profile: compForm.risk_profile || undefined,
+                  },
+                });
+                setEditCompliance(false);
+              }}
+              disabled={updateCompliance.isPending}
+            >
+              {updateCompliance.isPending ? 'Saving...' : 'Save Changes'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

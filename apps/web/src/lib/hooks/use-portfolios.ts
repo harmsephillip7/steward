@@ -12,11 +12,18 @@ export interface Portfolio {
   created_at: string;
 }
 
+export interface PortfolioFundAllocation {
+  fund_id: string;
+  allocation_pct: number;
+  value?: number;
+}
+
 export interface CreatePortfolioDto {
   name: string;
   client_id: string;
   mandate_type?: string;
   inception_date?: string;
+  funds?: PortfolioFundAllocation[];
 }
 
 export const portfolioKeys = {
@@ -32,6 +39,17 @@ export function usePortfolios() {
       const { data } = await api.get<Portfolio[]>('/portfolios');
       return data;
     },
+  });
+}
+
+export function usePortfolio(id: string) {
+  return useQuery({
+    queryKey: portfolioKeys.detail(id),
+    queryFn: async () => {
+      const { data } = await api.get<Portfolio>(`/portfolios/${id}`);
+      return data;
+    },
+    enabled: !!id,
   });
 }
 

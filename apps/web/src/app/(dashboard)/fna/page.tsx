@@ -1,12 +1,60 @@
 'use client';
 
-import { useClients } from '@/lib/hooks/use-clients';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useClients, type ClientDetail } from '@/lib/hooks/use-clients';
+import { useClientPlans, type FinancialPlan } from '@/lib/hooks/use-fna';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { FileText, Plus } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { FileText, Plus, Eye } from 'lucide-react';
+
+const RISK_LABELS: Record<string, string> = {
+  conservative: 'Conservative',
+  moderate_conservative: 'Moderate Conservative',
+  moderate: 'Moderate',
+  moderate_aggressive: 'Moderate Aggressive',
+  aggressive: 'Aggressive',
+};
+
+function PlanRow({ client }: { client: { id: string; first_name: string; last_name: string } }) {
+  const router = useRouter();
+  const { data: plans } = useClientPlans(client.id);
+  const latestPlan = plans?.[0];
+
+  return (
+    <TableRow key={client.id}>
+      <TableCell className="font-medium">{client.first_name} {client.last_name}</TableCell>
+      <TableCell>
+        {latestPlan ? (
+          <Badge className="bg-green-50 text-green-700 border-green-200 hover:bg-green-50">
+            {RISK_LABELS[latestPlan.risk_profile] ?? latestPlan.risk_profile}
+          </Badge>
+        ) : (
+          <Badge variant="secondary">Not started</Badge>
+        )}
+      </TableCell>
+      <TableCell className="text-gray-500 text-sm">
+        {latestPlan ? new Date(latestPlan.created_at).toLocaleDateString('en-ZA') : '—'}
+      </TableCell>
+      <TableCell className="text-sm">{plans?.length ?? 0}</TableCell>
+      <TableCell>
+        <div className="flex gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => router.push(`/fna/${client.id}`)}
+          >
+            {latestPlan ? 'New FNA' : 'Create FNA'}
+          </Button>
+        </div>
+      </TableCell>
+    </TableRow>
+  );
+}
 
 export default function FNAPage() {
   const { data: clients, isLoading } = useClients();
@@ -18,29 +66,30 @@ export default function FNAPage() {
           <h1 className="text-2xl font-bold text-gray-900">Financial Planning</h1>
           <p className="text-sm text-gray-500 mt-1">Financial Needs Analysis & Records of Advice</p>
         </div>
-        <Button disabled>
-          <Plus className="mr-2 h-4 w-4" /> New FNA
-        </Button>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Active FNAs</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Total Clients</CardTitle>
           </CardHeader>
-          <CardContent><div className="text-3xl font-bold">—</div></CardContent>
+          <CardContent><div className="text-3xl font-bold">{clients?.length ?? 0}</div></CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Pending ROAs</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">FNA Plans</CardTitle>
           </CardHeader>
-          <CardContent><div className="text-3xl font-bold text-amber-500">—</div></CardContent>
+          <CardContent><div className="text-3xl font-bold text-primary">—</div></CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Signed ROAs</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Risk Profiled</CardTitle>
           </CardHeader>
-          <CardContent><div className="text-3xl font-bold text-green-600">—</div></CardContent>
+          <CardContent>
+            <div className="text-3xl font-bold text-green-600">
+              {clients?.filter((c) => c.risk_profile_complete).length ?? 0}
+            </div>
+          </CardContent>
         </Card>
       </div>
 
@@ -60,23 +109,15 @@ export default function FNAPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Client</TableHead>
-                <TableHead>FNA Status</TableHead>
-                <TableHead>Last ROA</TableHead>
-                <TableHead>ROA Status</TableHead>
+                <TableHead>Risk Profile</TableHead>
+                <TableHead>Last FNA</TableHead>
+                <TableHead>Total Plans</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {clients?.map((client) => (
-                <TableRow key={client.id}>
-                  <TableCell className="font-medium">{client.first_name} {client.last_name}</TableCell>
-                  <TableCell><Badge variant="secondary">Not started</Badge></TableCell>
-                  <TableCell className="text-gray-400 text-sm">—</TableCell>
-                  <TableCell><Badge variant="outline">No ROA</Badge></TableCell>
-                  <TableCell>
-                    <Button size="sm" variant="outline" disabled>Create FNA</Button>
-                  </TableCell>
-                </TableRow>
+                <PlanRow key={client.id} client={client} />
               ))}
             </TableBody>
           </Table>
