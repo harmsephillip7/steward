@@ -44,7 +44,7 @@ export interface AllFundsScreeningSummary {
 @Injectable()
 export class AiScreeningService {
   private readonly logger = new Logger(AiScreeningService.name);
-  private readonly openai: OpenAI;
+  private openai: OpenAI | null = null;
 
   constructor(
     @InjectRepository(Fund)
@@ -55,9 +55,12 @@ export class AiScreeningService {
     private readonly flagRepo: Repository<CompromiseFlag>,
     private readonly config: ConfigService,
   ) {
-    this.openai = new OpenAI({
-      apiKey: this.config.get<string>('OPENAI_API_KEY'),
-    });
+    const apiKey = this.config.get<string>('OPENAI_API_KEY');
+    if (apiKey && apiKey !== 'your_openai_api_key_here') {
+      this.openai = new OpenAI({ apiKey });
+    } else {
+      this.logger.warn('OPENAI_API_KEY not set — AI screening disabled. Set the key to enable it.');
+    }
   }
 
   // ─── Public API ────────────────────────────────────────────────────────────
@@ -325,6 +328,9 @@ export class AiScreeningService {
       .join('\n');
 
     try {
+      if (!this.openai) {
+        throw new Error('AI screening is disabled — OPENAI_API_KEY is not configured.');
+      }
       const response = await this.openai.chat.completions.create({
         model: 'gpt-4o-mini',
         temperature: 0,
