@@ -111,6 +111,128 @@ export const SA_TAX = {
 
 // ─── Shared Types ─────────────────────────────────────────────────────────────
 
+// Advisor
+export interface Advisor {
+  id: string;
+  name: string;
+  email: string;
+  firm_name: string;
+  fsp_number?: string | null;
+  logo_url?: string | null;
+}
+
+// Fund
+export interface Fund {
+  id: string;
+  name: string;
+  isin?: string;
+  provider?: string;
+  asset_class?: string;
+  region?: string;
+  benchmark?: string;
+  ter?: string;
+  esg_score?: number;
+  christian_screen_pass?: boolean;
+  morningstar_rating?: number;
+  inception_date?: string;
+  fact_sheet_url?: string | null;
+  holdings_count?: number;
+  created_at: string;
+  updated_at: string;
+}
+
+// Client
+export interface Client {
+  id: string;
+  advisor_id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone?: string;
+  id_number?: string;
+  dob?: string;
+  risk_profile?: string;
+  tax_number?: string;
+  tax_residency?: string;
+  kyc_complete: boolean;
+  fica_complete: boolean;
+  source_of_wealth_declared: boolean;
+  risk_profile_complete: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateClientDto {
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone?: string;
+  id_number?: string;
+  date_of_birth?: string;
+  risk_profile?: string;
+  tax_number?: string;
+}
+
+export interface RecordOfAdvice {
+  id: string;
+  client_id: string;
+  advisor_id: string;
+  advice_date: string;
+  advice_summary: string;
+  pdf_url: string | null;
+  signed_at: string | null;
+  created_at: string;
+}
+
+export interface ClientPortfolio {
+  id: string;
+  client_id: string;
+  name: string;
+  total_value: string;
+  currency: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ClientDetail extends Client {
+  portfolios: ClientPortfolio[];
+  records_of_advice: RecordOfAdvice[];
+}
+
+// Portfolio
+export interface Portfolio {
+  id: string;
+  name: string;
+  client_id: string;
+  value?: number;
+  inception_date?: string;
+  mandate_type?: string;
+  created_at: string;
+}
+
+export interface PortfolioFundAllocation {
+  fund_id: string;
+  allocation_pct: number;
+  value?: number;
+}
+
+export interface CreatePortfolioDto {
+  name: string;
+  client_id: string;
+  mandate_type?: string;
+  inception_date?: string;
+  funds?: PortfolioFundAllocation[];
+}
+
+// AI Screening
+export interface AiScreeningStatus {
+  fund_id: string;
+  fund_name: string;
+  ai_flags: number;
+  manual_flags: number;
+}
+
+// Screening results
 export interface CategoryExposure {
   category: CompromiseCategory;
   exposure_pct: number;

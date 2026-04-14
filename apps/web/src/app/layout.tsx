@@ -8,6 +8,13 @@ const inter = Inter({ subsets: ['latin'] });
 export const metadata: Metadata = {
   title: 'Steward — Christian Values Advisory Platform',
   description: 'Ethical investment screening and financial planning for South African advisors.',
+  manifest: '/manifest.json',
+  themeColor: '#1d4ed8',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'Steward',
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

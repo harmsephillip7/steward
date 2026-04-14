@@ -1,31 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
 import api from '@/lib/api';
+import type { Fund, AiScreeningStatus } from '@steward/shared';
 
-export interface AiScreeningStatus {
-  fund_id: string;
-  fund_name: string;
-  ai_flags: number;
-  manual_flags: number;
-}
-
-export interface Fund {
-  id: string;
-  name: string;
-  isin?: string;
-  provider?: string;
-  asset_class?: string;
-  region?: string;
-  benchmark?: string;
-  ter?: string; // PostgreSQL decimal returns as string
-  esg_score?: number;
-  christian_screen_pass?: boolean;
-  morningstar_rating?: number;
-  inception_date?: string;
-  fact_sheet_url?: string | null;
-  holdings_count?: number;
-  created_at: string;
-  updated_at: string;
-}
+export type { Fund, AiScreeningStatus };
 
 export const fundKeys = {
   all: ['funds'] as const,

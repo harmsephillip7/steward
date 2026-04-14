@@ -1,30 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import api from '@/lib/api';
+import type { Portfolio, CreatePortfolioDto, PortfolioFundAllocation } from '@steward/shared';
 
-export interface Portfolio {
-  id: string;
-  name: string;
-  client_id: string;
-  value?: number;
-  inception_date?: string;
-  mandate_type?: string;
-  created_at: string;
-}
-
-export interface PortfolioFundAllocation {
-  fund_id: string;
-  allocation_pct: number;
-  value?: number;
-}
-
-export interface CreatePortfolioDto {
-  name: string;
-  client_id: string;
-  mandate_type?: string;
-  inception_date?: string;
-  funds?: PortfolioFundAllocation[];
-}
+export type { Portfolio, CreatePortfolioDto, PortfolioFundAllocation };
 
 export const portfolioKeys = {
   all: ['portfolios'] as const,

@@ -1,6 +1,6 @@
 'use client';
 
-import { useSession, signOut } from 'next-auth/react';
+import { useAuth } from '@/lib/auth-context';
 import { Bell, LogOut, ChevronDown } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -24,8 +24,8 @@ function getInitials(name?: string | null): string {
 }
 
 export function Topbar() {
-  const { data: session } = useSession();
-  const userName = session?.user?.name || session?.user?.email || 'Advisor';
+  const { advisor, logout } = useAuth();
+  const userName = advisor?.name || advisor?.email || 'Advisor';
 
   return (
     <header className="flex items-center justify-between h-16 px-6 bg-white border-b border-gray-200 shrink-0">
@@ -58,14 +58,14 @@ export function Topbar() {
           <DropdownMenuContent align="end" className="w-48">
             <DropdownMenuLabel className="font-normal">
               <div className="flex flex-col space-y-1">
-                <p className="text-sm font-medium">{session?.user?.name || 'Advisor'}</p>
-                <p className="text-xs text-muted-foreground">{session?.user?.email}</p>
+                <p className="text-sm font-medium">{advisor?.name || 'Advisor'}</p>
+                <p className="text-xs text-muted-foreground">{advisor?.email}</p>
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem
               className="text-destructive focus:text-destructive cursor-pointer"
-              onClick={() => signOut({ callbackUrl: '/login' })}
+              onClick={logout}
             >
               <LogOut className="mr-2 h-4 w-4" />
               Sign out
