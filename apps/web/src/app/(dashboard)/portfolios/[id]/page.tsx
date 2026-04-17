@@ -14,6 +14,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import {
   ArrowLeft, Shield, ShieldCheck, ShieldAlert, RefreshCw, ArrowRightLeft, Briefcase,
 } from 'lucide-react';
+import { Breadcrumbs } from '@/components/ui/breadcrumbs';
 import { cn } from '@/lib/utils';
 
 interface PortfolioFund {
@@ -105,12 +106,7 @@ export default function PortfolioDetailPage() {
 
   return (
     <div>
-      <Link
-        href="/portfolios"
-        className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 mb-6"
-      >
-        <ArrowLeft className="h-4 w-4" /> All portfolios
-      </Link>
+      <Breadcrumbs />
 
       <div className="flex items-start justify-between mb-6">
         <div>

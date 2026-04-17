@@ -25,6 +25,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Plus, Users, Search } from 'lucide-react';
+import { EmptyState } from '@/components/ui/empty-state';
 
 export default function ClientsPage() {
   const { data: clients, isLoading } = useClients();
@@ -92,15 +93,14 @@ export default function ClientsPage() {
           ))}
         </div>
       ) : filtered?.length === 0 ? (
-        <Card className="border-dashed">
-          <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-            <Users className="h-10 w-10 text-muted-foreground mb-3" />
-            <h3 className="font-semibold text-gray-900">No clients found</h3>
-            <p className="text-sm text-gray-500 mt-1">
-              {search ? 'Try a different search term.' : 'Add your first client to get started.'}
-            </p>
-          </CardContent>
-        </Card>
+        <EmptyState
+          icon={Users}
+          title="No clients found"
+          description={search ? 'Try a different search term.' : 'Add your first client to get started with portfolio management and financial planning.'}
+          actionLabel={search ? undefined : 'Add Client'}
+          actionHref={search ? undefined : '#'}
+          onAction={search ? undefined : () => setOpen(true)}
+        />
       ) : (
         <Card>
           <Table>

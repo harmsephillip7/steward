@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, TrendingUp, AlertTriangle, Globe, Sparkles, RefreshCw } from 'lucide-react';
+import { Breadcrumbs } from '@/components/ui/breadcrumbs';
 
 interface CompromiseFlag {
   id: string;
@@ -112,13 +113,7 @@ export default function FundDetailPage() {
 
   return (
     <div>
-      <Link
-        href="/funds"
-        className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 mb-6"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        All funds
-      </Link>
+      <Breadcrumbs />
 
       {/* Header */}
       <div className="flex items-start justify-between mb-6">

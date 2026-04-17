@@ -18,6 +18,7 @@ import { Button } from '@/components/ui/button';
 import {
   ArrowLeft, User, CheckCircle, XCircle, Briefcase, FileText, Calendar, Pencil, Shield,
 } from 'lucide-react';
+import { Breadcrumbs } from '@/components/ui/breadcrumbs';
 
 function StatusIcon({ done }: { done: boolean }) {
   return done
@@ -85,14 +86,7 @@ export default function ClientDetailPage() {
 
   return (
     <div>
-      {/* Back link */}
-      <Link
-        href="/clients"
-        className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 mb-6"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        All clients
-      </Link>
+      <Breadcrumbs />
 
       {/* Header */}
       <div className="flex items-start justify-between mb-6">
@@ -103,6 +97,13 @@ export default function ClientDetailPage() {
           <p className="text-sm text-gray-500 mt-1">{client.email}</p>
         </div>
         <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => router.push(`/clients/${client.id}/profile`)}
+          >
+            <User className="mr-1.5 h-3.5 w-3.5" /> Full Profile
+          </Button>
           <Button
             variant="outline"
             size="sm"
