@@ -98,7 +98,7 @@ export default function PortfolioDetailPage() {
   if (!portfolio) {
     return (
       <div className="text-center py-16">
-        <p className="text-gray-500">Portfolio not found.</p>
+        <p className="text-muted-foreground">Portfolio not found.</p>
         <Button variant="ghost" className="mt-4" onClick={() => router.back()}>Go back</Button>
       </div>
     );
@@ -110,8 +110,8 @@ export default function PortfolioDetailPage() {
 
       <div className="flex items-start justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{portfolio.name}</h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <h1 className="text-2xl font-bold text-foreground">{portfolio.name}</h1>
+          <p className="text-sm text-muted-foreground mt-1">
             {formatCurrency(portfolio.total_value, portfolio.currency)} &middot; {portfolio.portfolio_funds.length} funds
           </p>
         </div>
@@ -127,7 +127,7 @@ export default function PortfolioDetailPage() {
         </CardHeader>
         <CardContent className="p-0">
           {portfolio.portfolio_funds.length === 0 ? (
-            <div className="px-6 py-8 text-center text-sm text-gray-500">No funds allocated.</div>
+            <div className="px-6 py-8 text-center text-sm text-muted-foreground">No funds allocated.</div>
           ) : (
             <Table>
               <TableHeader>
@@ -145,14 +145,14 @@ export default function PortfolioDetailPage() {
                 {portfolio.portfolio_funds.map((pf) => (
                   <TableRow key={pf.id}>
                     <TableCell className="font-medium">{pf.fund.name}</TableCell>
-                    <TableCell className="text-gray-500 font-mono text-xs">{pf.fund.isin ?? '—'}</TableCell>
+                    <TableCell className="text-muted-foreground font-mono text-xs">{pf.fund.isin ?? '—'}</TableCell>
                     <TableCell>
                       <Badge variant="outline" className="capitalize text-xs">
                         {pf.fund.asset_class?.replace(/_/g, ' ') ?? '—'}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-gray-500 uppercase text-xs">{pf.fund.region ?? '—'}</TableCell>
-                    <TableCell className="text-gray-500">{pf.fund.ter ? `${Number(pf.fund.ter).toFixed(2)}%` : '—'}</TableCell>
+                    <TableCell className="text-muted-foreground uppercase text-xs">{pf.fund.region ?? '—'}</TableCell>
+                    <TableCell className="text-muted-foreground">{pf.fund.ter ? `${Number(pf.fund.ter).toFixed(2)}%` : '—'}</TableCell>
                     <TableCell className="text-right font-medium">{Number(pf.allocation_pct).toFixed(1)}%</TableCell>
                     <TableCell className="text-right font-mono">
                       {pf.value ? formatCurrency(pf.value, portfolio.currency) : '—'}
@@ -210,26 +210,26 @@ export default function PortfolioDetailPage() {
                   <p className="text-2xl font-bold text-red-700">{screeningResult.compromised_pct.toFixed(1)}%</p>
                   <p className="text-xs text-red-600">Compromised</p>
                 </div>
-                <div className="bg-gray-50 rounded-lg p-4 text-center">
-                  <p className="text-2xl font-bold text-gray-700 capitalize">{screeningResult.mode}</p>
-                  <p className="text-xs text-gray-500">Mode</p>
+                <div className="bg-muted/50 rounded-lg p-4 text-center">
+                  <p className="text-2xl font-bold text-foreground/80 capitalize">{screeningResult.mode}</p>
+                  <p className="text-xs text-muted-foreground">Mode</p>
                 </div>
-                <div className="bg-gray-50 rounded-lg p-4 text-center">
-                  <p className="text-2xl font-bold text-gray-700">
+                <div className="bg-muted/50 rounded-lg p-4 text-center">
+                  <p className="text-2xl font-bold text-foreground/80">
                     {screeningResult.passed_strict_mode ? (
                       <span className="text-green-600">Pass</span>
                     ) : (
                       <span className="text-red-600">Fail</span>
                     )}
                   </p>
-                  <p className="text-xs text-gray-500">Strict Mode</p>
+                  <p className="text-xs text-muted-foreground">Strict Mode</p>
                 </div>
               </div>
 
               {/* Category exposure */}
               {screeningResult.by_category.length > 0 && (
                 <div>
-                  <p className="text-sm font-medium text-gray-700 mb-2">Category Exposure</p>
+                  <p className="text-sm font-medium text-foreground/80 mb-2">Category Exposure</p>
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -244,7 +244,7 @@ export default function PortfolioDetailPage() {
                           <TableCell className="capitalize font-medium">{cat.category.replace(/_/g, ' ')}</TableCell>
                           <TableCell>
                             <div className="flex items-center gap-2">
-                              <div className="w-24 h-2 bg-gray-100 rounded-full overflow-hidden">
+                              <div className="w-24 h-2 bg-muted rounded-full overflow-hidden">
                                 <div
                                   className="h-full bg-red-500 rounded-full"
                                   style={{ width: `${Math.min(100, cat.exposure_pct)}%` }}
@@ -264,7 +264,7 @@ export default function PortfolioDetailPage() {
               {/* Per-fund results */}
               {screeningResult.fund_results.length > 0 && (
                 <div>
-                  <p className="text-sm font-medium text-gray-700 mb-2">Fund Results</p>
+                  <p className="text-sm font-medium text-foreground/80 mb-2">Fund Results</p>
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -298,7 +298,7 @@ export default function PortfolioDetailPage() {
 
               {replacements.length > 0 && (
                 <div>
-                  <p className="text-sm font-medium text-gray-700 mb-2">Replacement Suggestions</p>
+                  <p className="text-sm font-medium text-foreground/80 mb-2">Replacement Suggestions</p>
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -318,7 +318,7 @@ export default function PortfolioDetailPage() {
                             <Badge variant="outline">{(r.similarity_score * 100).toFixed(0)}%</Badge>
                           </TableCell>
                           <TableCell className="text-green-600">{r.exposure_reduction_pct.toFixed(1)}%</TableCell>
-                          <TableCell className="text-sm text-gray-500 max-w-xs truncate">{r.reason}</TableCell>
+                          <TableCell className="text-sm text-muted-foreground max-w-xs truncate">{r.reason}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -350,7 +350,7 @@ export default function PortfolioDetailPage() {
               <TableBody>
                 {history.map((h) => (
                   <TableRow key={h.id}>
-                    <TableCell className="text-gray-500">
+                    <TableCell className="text-muted-foreground">
                       {new Date(h.created_at).toLocaleDateString('en-ZA', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                     </TableCell>
                     <TableCell><Badge variant="outline" className="capitalize">{h.mode}</Badge></TableCell>

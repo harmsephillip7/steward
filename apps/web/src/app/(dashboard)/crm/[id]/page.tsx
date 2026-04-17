@@ -127,8 +127,8 @@ export default function LeadDetailPage() {
               <div className="space-y-3">
                 {activities.map(a => (
                   <div key={a.id} className="flex items-start gap-3 p-3 rounded-lg border">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${a.completed_at ? 'bg-green-100' : 'bg-blue-100'}`}>
-                      {a.completed_at ? <CheckCircle2 className="w-4 h-4 text-green-600" /> : <Clock className="w-4 h-4 text-blue-600" />}
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${a.completed_at ? 'bg-green-100' : 'bg-primary/10'}`}>
+                      {a.completed_at ? <CheckCircle2 className="w-4 h-4 text-green-600" /> : <Clock className="w-4 h-4 text-primary" />}
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center gap-2">

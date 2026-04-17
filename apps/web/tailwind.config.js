@@ -15,12 +15,12 @@ module.exports = {
     extend: {
       colors: {
         brand: {
-          50:  '#eff6ff',
-          100: '#dbeafe',
-          500: '#3b82f6',
-          600: '#2563eb',
-          700: '#1d4ed8',
-          900: '#1e3a8a',
+          50:  '#e6f2f3',
+          100: '#b3d9dd',
+          500: '#006B78',
+          600: '#005560',
+          700: '#003B43',
+          900: '#001F24',
         },
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',

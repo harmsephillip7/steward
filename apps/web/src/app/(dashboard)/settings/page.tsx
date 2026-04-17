@@ -47,7 +47,7 @@ export default function SettingsPage() {
   const [form, setForm] = useState({
     firm_name: '',
     fsp_number: '',
-    primary_colour_hex: '#1d4ed8',
+    primary_colour_hex: '#003B43',
   });
 
   useEffect(() => {
@@ -55,7 +55,7 @@ export default function SettingsPage() {
       setForm({
         firm_name: advisor.firm_name ?? '',
         fsp_number: advisor.fsp_number ?? '',
-        primary_colour_hex: advisor.primary_colour_hex ?? '#1d4ed8',
+        primary_colour_hex: advisor.primary_colour_hex ?? '#003B43',
       });
     }
   }, [advisor]);
@@ -181,7 +181,7 @@ export default function SettingsPage() {
                       value={form.primary_colour_hex}
                       onChange={(e) => setForm({ ...form, primary_colour_hex: e.target.value })}
                       className="w-36 font-mono"
-                      placeholder="#1d4ed8"
+                      placeholder="#003B43"
                     />
                     <div className="h-10 w-10 rounded-lg border" style={{ backgroundColor: form.primary_colour_hex }} />
                   </div>

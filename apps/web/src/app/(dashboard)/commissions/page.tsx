@@ -93,7 +93,7 @@ export default function CommissionsPage() {
       {summary && (
         <div className="grid gap-4 md:grid-cols-4">
           <Card><CardContent className="pt-4 flex items-center gap-3"><DollarSign className="w-8 h-8 text-green-500" /><div><p className="text-2xl font-bold">{formatCurrency(summary.totalReceived)}</p><p className="text-sm text-muted-foreground">Total Received</p></div></CardContent></Card>
-          <Card><CardContent className="pt-4 flex items-center gap-3"><TrendingUp className="w-8 h-8 text-blue-500" /><div><p className="text-2xl font-bold">{formatCurrency(summary.totalExpected)}</p><p className="text-sm text-muted-foreground">Expected</p></div></CardContent></Card>
+          <Card><CardContent className="pt-4 flex items-center gap-3"><TrendingUp className="w-8 h-8 text-primary" /><div><p className="text-2xl font-bold">{formatCurrency(summary.totalExpected)}</p><p className="text-sm text-muted-foreground">Expected</p></div></CardContent></Card>
           <Card><CardContent className="pt-4 flex items-center gap-3"><Receipt className="w-8 h-8 text-orange-500" /><div><p className="text-2xl font-bold">{formatCurrency(summary.totalVAT)}</p><p className="text-sm text-muted-foreground">Total VAT</p></div></CardContent></Card>
           <Card><CardContent className="pt-4 flex items-center gap-3"><Plug className="w-8 h-8 text-purple-500" /><div><p className="text-2xl font-bold">{integrations.length}</p><p className="text-sm text-muted-foreground">Integrations</p></div></CardContent></Card>
         </div>

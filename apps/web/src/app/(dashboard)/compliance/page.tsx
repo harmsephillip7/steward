@@ -54,7 +54,7 @@ function ComplianceEditor({ client, onClose }: { client: any; onClose: () => voi
               type="button"
               onClick={() => setter(!value)}
               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                value ? 'bg-green-600' : 'bg-gray-200'
+                value ? 'bg-green-600' : 'bg-muted'
               }`}
             >
               <span
@@ -109,10 +109,10 @@ function ROASection({ clientId }: { clientId: string }) {
   return (
     <div className="mt-4 space-y-2">
       <div className="flex items-center justify-between">
-        <p className="text-xs font-medium text-gray-500">Records of Advice</p>
+        <p className="text-xs font-medium text-muted-foreground">Records of Advice</p>
       </div>
       {roas.map((roa) => (
-        <div key={roa.id} className="flex items-center justify-between text-xs bg-gray-50 px-3 py-2 rounded">
+        <div key={roa.id} className="flex items-center justify-between text-xs bg-muted/50 px-3 py-2 rounded">
           <span className="truncate max-w-[200px]">{roa.advice_summary}</span>
           <div className="flex items-center gap-2">
             {roa.signed_at ? (
@@ -157,8 +157,8 @@ export default function CompliancePage() {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Compliance</h1>
-        <p className="text-sm text-gray-500 mt-1">FICA, FAIS & KYC status per client</p>
+        <h1 className="text-2xl font-bold text-foreground">Compliance</h1>
+        <p className="text-sm text-muted-foreground mt-1">FICA, FAIS & KYC status per client</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
@@ -197,8 +197,8 @@ export default function CompliancePage() {
         <Card className="border-dashed">
           <CardContent className="flex flex-col items-center justify-center py-12 text-center">
             <Shield className="h-10 w-10 text-muted-foreground mb-3" />
-            <h3 className="font-semibold text-gray-900">No compliance records</h3>
-            <p className="text-sm text-gray-500 mt-1">Add clients to track compliance status.</p>
+            <h3 className="font-semibold text-foreground">No compliance records</h3>
+            <p className="text-sm text-muted-foreground mt-1">Add clients to track compliance status.</p>
           </CardContent>
         </Card>
       ) : (
@@ -219,7 +219,7 @@ export default function CompliancePage() {
               {clients?.map((client) => (
                 <TableRow key={client.id}>
                   <TableCell className="font-medium">{client.first_name} {client.last_name}</TableCell>
-                  <TableCell className="text-gray-500 text-sm">{client.email}</TableCell>
+                  <TableCell className="text-muted-foreground text-sm">{client.email}</TableCell>
                   <TableCell><StatusBadge done={client.fica_complete} /></TableCell>
                   <TableCell><StatusBadge done={client.kyc_complete} /></TableCell>
                   <TableCell><StatusBadge done={client.source_of_wealth_declared} /></TableCell>

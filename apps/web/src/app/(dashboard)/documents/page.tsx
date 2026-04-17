@@ -105,7 +105,7 @@ export default function DocumentsPage() {
       {/* Stats */}
       {stats && (
         <div className="grid gap-4 md:grid-cols-4">
-          <Card><CardContent className="pt-4 flex items-center gap-3"><FolderOpen className="w-8 h-8 text-blue-500" /><div><p className="text-2xl font-bold">{stats.total}</p><p className="text-sm text-muted-foreground">Total Documents</p></div></CardContent></Card>
+          <Card><CardContent className="pt-4 flex items-center gap-3"><FolderOpen className="w-8 h-8 text-primary" /><div><p className="text-2xl font-bold">{stats.total}</p><p className="text-sm text-muted-foreground">Total Documents</p></div></CardContent></Card>
           <Card><CardContent className="pt-4 flex items-center gap-3"><HardDrive className="w-8 h-8 text-green-500" /><div><p className="text-2xl font-bold">{formatBytes(stats.totalSize)}</p><p className="text-sm text-muted-foreground">Total Size</p></div></CardContent></Card>
           <Card><CardContent className="pt-4 flex items-center gap-3"><AlertTriangle className="w-8 h-8 text-orange-500" /><div><p className="text-2xl font-bold">{stats.expiringSoon}</p><p className="text-sm text-muted-foreground">Expiring Soon</p></div></CardContent></Card>
           <Card><CardContent className="pt-4 flex items-center gap-3"><Clock className="w-8 h-8 text-purple-500" /><div><p className="text-2xl font-bold">{Object.keys(stats.byType).length}</p><p className="text-sm text-muted-foreground">Document Types</p></div></CardContent></Card>

@@ -64,8 +64,8 @@ export default function PortfoliosPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Portfolios</h1>
-          <p className="text-sm text-gray-500 mt-1">{portfolios?.length ?? 0} managed portfolios</p>
+          <h1 className="text-2xl font-bold text-foreground">Portfolios</h1>
+          <p className="text-sm text-muted-foreground mt-1">{portfolios?.length ?? 0} managed portfolios</p>
         </div>
         <Button onClick={() => setOpen(true)}>
           <Plus className="mr-2 h-4 w-4" /> New Portfolio
@@ -78,8 +78,8 @@ export default function PortfoliosPage() {
         <Card className="border-dashed">
           <CardContent className="flex flex-col items-center justify-center py-12 text-center">
             <Briefcase className="h-10 w-10 text-muted-foreground mb-3" />
-            <h3 className="font-semibold text-gray-900">No portfolios yet</h3>
-            <p className="text-sm text-gray-500 mt-1">Create a portfolio and link it to a client.</p>
+            <h3 className="font-semibold text-foreground">No portfolios yet</h3>
+            <p className="text-sm text-muted-foreground mt-1">Create a portfolio and link it to a client.</p>
           </CardContent>
         </Card>
       ) : (
@@ -99,14 +99,14 @@ export default function PortfoliosPage() {
                 <TableRow key={p.id} className="cursor-pointer hover:bg-muted/50"
                   onClick={() => router.push(`/portfolios/${p.id}`)}>
                   <TableCell className="font-medium">{p.name}</TableCell>
-                  <TableCell className="text-gray-500">{clientMap[p.client_id] || p.client_id}</TableCell>
+                  <TableCell className="text-muted-foreground">{clientMap[p.client_id] || p.client_id}</TableCell>
                   <TableCell>
-                    {p.mandate_type ? <Badge variant="outline">{p.mandate_type}</Badge> : <span className="text-gray-400">—</span>}
+                    {p.mandate_type ? <Badge variant="outline">{p.mandate_type}</Badge> : <span className="text-muted-foreground/70">—</span>}
                   </TableCell>
-                  <TableCell className="text-gray-500">
+                  <TableCell className="text-muted-foreground">
                     {p.inception_date ? new Date(p.inception_date).toLocaleDateString('en-ZA') : '—'}
                   </TableCell>
-                  <TableCell className="text-gray-500">
+                  <TableCell className="text-muted-foreground">
                     {p.value != null ? `R ${p.value.toLocaleString('en-ZA')}` : '—'}
                   </TableCell>
                 </TableRow>
@@ -204,7 +204,7 @@ export default function PortfoliosPage() {
                             </TableCell>
                             <TableCell>
                               <Button type="button" variant="ghost" size="sm" onClick={() => removeFund(a.fund_id)}>
-                                <X className="h-3.5 w-3.5 text-gray-400" />
+                                <X className="h-3.5 w-3.5 text-muted-foreground/70" />
                               </Button>
                             </TableCell>
                           </TableRow>
@@ -212,7 +212,7 @@ export default function PortfoliosPage() {
                       })}
                     </TableBody>
                   </Table>
-                  <div className="px-4 py-2 bg-gray-50 text-xs flex justify-between">
+                  <div className="px-4 py-2 bg-muted/50 text-xs flex justify-between">
                     <span>Total allocation:</span>
                     <span className={totalAllocation === 100 ? 'text-green-600 font-medium' : totalAllocation > 100 ? 'text-red-600 font-medium' : 'text-amber-600 font-medium'}>
                       {totalAllocation.toFixed(1)}%

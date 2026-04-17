@@ -40,7 +40,7 @@ export default function OnboardingPage() {
           <h1 className="text-2xl font-bold tracking-tight">Client Onboarding</h1>
           <p className="text-muted-foreground">Track onboarding progress</p>
         </div>
-        <Badge className={onboarding.status === 'completed' ? 'bg-green-100 text-green-800' : onboarding.status === 'in_progress' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'}>
+        <Badge className={onboarding.status === 'completed' ? 'bg-green-100 text-green-800' : onboarding.status === 'in_progress' ? 'bg-primary/10 text-primary' : 'bg-muted text-foreground'}>
           {onboarding.status.replace(/_/g, ' ')}
         </Badge>
       </div>

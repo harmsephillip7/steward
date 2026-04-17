@@ -73,7 +73,7 @@ export default function AdvisoryPage() {
       {/* Dashboard Cards */}
       {dashboard && (
         <div className="grid gap-4 md:grid-cols-4">
-          <Card><CardContent className="pt-4 flex items-center gap-3"><Brain className="w-8 h-8 text-blue-500" /><div><p className="text-2xl font-bold">{dashboard.total}</p><p className="text-sm text-muted-foreground">Total Recommendations</p></div></CardContent></Card>
+          <Card><CardContent className="pt-4 flex items-center gap-3"><Brain className="w-8 h-8 text-primary" /><div><p className="text-2xl font-bold">{dashboard.total}</p><p className="text-sm text-muted-foreground">Total Recommendations</p></div></CardContent></Card>
           <Card><CardContent className="pt-4 flex items-center gap-3"><Clock className="w-8 h-8 text-orange-500" /><div><p className="text-2xl font-bold">{dashboard.pending}</p><p className="text-sm text-muted-foreground">Pending Review</p></div></CardContent></Card>
           <Card><CardContent className="pt-4 flex items-center gap-3"><AlertTriangle className="w-8 h-8 text-red-500" /><div><p className="text-2xl font-bold">{dashboard.critical}</p><p className="text-sm text-muted-foreground">Critical</p></div></CardContent></Card>
           <Card><CardContent className="pt-4 flex items-center gap-3"><CheckCircle2 className="w-8 h-8 text-green-500" /><div><p className="text-2xl font-bold">{dashboard.implemented}</p><p className="text-sm text-muted-foreground">Implemented</p></div></CardContent></Card>

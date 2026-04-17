@@ -109,7 +109,7 @@ export default function FNAWizardPage() {
   if (!client) {
     return (
       <div className="text-center py-16">
-        <p className="text-gray-500">Client not found.</p>
+        <p className="text-muted-foreground">Client not found.</p>
         <Button variant="ghost" className="mt-4" onClick={() => router.push('/fna')}>
           Go back
         </Button>
@@ -121,16 +121,16 @@ export default function FNAWizardPage() {
     <div>
       <Link
         href="/fna"
-        className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 mb-6"
+        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-6"
       >
         <ArrowLeft className="h-4 w-4" /> Financial Planning
       </Link>
 
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">
+        <h1 className="text-2xl font-bold text-foreground">
           FNA — {client.first_name} {client.last_name}
         </h1>
-        <p className="text-sm text-gray-500 mt-1">Financial Needs Analysis Wizard</p>
+        <p className="text-sm text-muted-foreground mt-1">Financial Needs Analysis Wizard</p>
       </div>
 
       {/* Step indicator */}
@@ -141,7 +141,7 @@ export default function FNAWizardPage() {
           const isDone = i < step || result != null;
           return (
             <div key={s.label} className="flex items-center gap-2">
-              {i > 0 && <div className={cn('h-px w-8', isDone ? 'bg-primary' : 'bg-gray-200')} />}
+              {i > 0 && <div className={cn('h-px w-8', isDone ? 'bg-primary' : 'bg-muted')} />}
               <div
                 className={cn(
                   'flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-colors',
@@ -149,7 +149,7 @@ export default function FNAWizardPage() {
                     ? 'bg-primary text-white'
                     : isDone
                     ? 'bg-primary/10 text-primary'
-                    : 'bg-gray-100 text-gray-400',
+                    : 'bg-muted text-muted-foreground/70',
                 )}
               >
                 {isDone && !isActive ? (
@@ -176,7 +176,7 @@ export default function FNAWizardPage() {
           <CardContent className="space-y-6">
             {riskQuestions?.map((q) => (
               <div key={q.id} className="space-y-2">
-                <p className="text-sm font-medium text-gray-900">
+                <p className="text-sm font-medium text-foreground">
                   {q.id}. {q.question}
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-5 gap-2">
@@ -192,7 +192,7 @@ export default function FNAWizardPage() {
                           'text-xs px-3 py-2 rounded-md border text-left transition-colors',
                           selected
                             ? 'border-primary bg-primary/10 text-primary font-medium'
-                            : 'border-gray-200 hover:border-gray-300 text-gray-600',
+                            : 'border-border hover:border-border text-muted-foreground',
                         )}
                       >
                         {opt}
@@ -218,7 +218,7 @@ export default function FNAWizardPage() {
           <CardContent className="space-y-6">
             {behaviourQuestions?.map((q) => (
               <div key={q.id} className="space-y-2">
-                <p className="text-sm font-medium text-gray-900">
+                <p className="text-sm font-medium text-foreground">
                   {q.id}. {q.question}
                 </p>
                 <div className="grid grid-cols-5 gap-2">
@@ -234,7 +234,7 @@ export default function FNAWizardPage() {
                           'text-xs px-3 py-2 rounded-md border text-center transition-colors',
                           selected
                             ? 'border-primary bg-primary/10 text-primary font-medium'
-                            : 'border-gray-200 hover:border-gray-300 text-gray-600',
+                            : 'border-border hover:border-border text-muted-foreground',
                         )}
                       >
                         {opt}
@@ -362,11 +362,11 @@ export default function FNAWizardPage() {
             <CardContent>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                 <div>
-                  <p className="text-xs text-gray-500 uppercase tracking-wide">Profile</p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide">Profile</p>
                   <Badge className="mt-1 text-sm">{RISK_LABELS[result.risk_profile] ?? result.risk_profile}</Badge>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500 uppercase tracking-wide">Risk Score</p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide">Risk Score</p>
                   <p className="text-2xl font-bold mt-1">{result.risk_score} / 50</p>
                 </div>
               </div>
@@ -390,9 +390,9 @@ export default function FNAWizardPage() {
                   { label: 'Overconfidence', value: result.behaviour_profile.overconfidence },
                 ].map(({ label, value }) => (
                   <div key={label}>
-                    <p className="text-xs text-gray-500 uppercase tracking-wide">{label}</p>
+                    <p className="text-xs text-muted-foreground uppercase tracking-wide">{label}</p>
                     <div className="flex items-center gap-2 mt-1">
-                      <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                      <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
                         <div
                           className={cn(
                             'h-full rounded-full',
@@ -428,22 +428,22 @@ export default function FNAWizardPage() {
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                   {result.tax_calculation.income_tax != null && (
                     <div>
-                      <p className="text-xs text-gray-500 uppercase tracking-wide">Income Tax</p>
+                      <p className="text-xs text-muted-foreground uppercase tracking-wide">Income Tax</p>
                       <p className="text-xl font-bold mt-1">{formatCurrency(result.tax_calculation.income_tax)}</p>
-                      <p className="text-xs text-gray-400">
+                      <p className="text-xs text-muted-foreground/70">
                         Marginal: {formatPct(result.tax_calculation.marginal_rate)} | Effective: {formatPct(result.tax_calculation.effective_rate)}
                       </p>
                     </div>
                   )}
                   {result.tax_calculation.cgt_liability != null && (
                     <div>
-                      <p className="text-xs text-gray-500 uppercase tracking-wide">Capital Gains Tax</p>
+                      <p className="text-xs text-muted-foreground uppercase tracking-wide">Capital Gains Tax</p>
                       <p className="text-xl font-bold mt-1">{formatCurrency(result.tax_calculation.cgt_liability)}</p>
                     </div>
                   )}
                   {result.tax_calculation.estate_duty != null && (
                     <div>
-                      <p className="text-xs text-gray-500 uppercase tracking-wide">Estate Duty</p>
+                      <p className="text-xs text-muted-foreground uppercase tracking-wide">Estate Duty</p>
                       <p className="text-xl font-bold mt-1">{formatCurrency(result.tax_calculation.estate_duty)}</p>
                     </div>
                   )}
@@ -463,19 +463,19 @@ export default function FNAWizardPage() {
             <CardContent>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
                 <div>
-                  <p className="text-xs text-gray-500 uppercase tracking-wide">Monthly Income</p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide">Monthly Income</p>
                   <p className="font-medium mt-0.5">{result.monthly_income ? formatCurrency(result.monthly_income) : '—'}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500 uppercase tracking-wide">Monthly Expenses</p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide">Monthly Expenses</p>
                   <p className="font-medium mt-0.5">{result.monthly_expenses ? formatCurrency(result.monthly_expenses) : '—'}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500 uppercase tracking-wide">Estate Value</p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide">Estate Value</p>
                   <p className="font-medium mt-0.5">{result.estate_value ? formatCurrency(result.estate_value) : '—'}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500 uppercase tracking-wide">Liquidity Needs</p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide">Liquidity Needs</p>
                   <p className="font-medium mt-0.5">{result.liquidity_needs ? formatCurrency(result.liquidity_needs) : '—'}</p>
                 </div>
               </div>

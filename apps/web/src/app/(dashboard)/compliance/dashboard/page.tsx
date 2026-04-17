@@ -59,7 +59,7 @@ export default function ComplianceDashboardPage() {
           <Card><CardContent className="pt-4 flex items-center gap-3"><AlertTriangle className="w-8 h-8 text-red-500" /><div><p className="text-2xl font-bold">{dashboard.overdueReviews}</p><p className="text-sm text-muted-foreground">Overdue Reviews</p></div></CardContent></Card>
           <Card><CardContent className="pt-4 flex items-center gap-3"><Clock className="w-8 h-8 text-orange-500" /><div><p className="text-2xl font-bold">{dashboard.pendingReviews}</p><p className="text-sm text-muted-foreground">Pending Reviews</p></div></CardContent></Card>
           <Card><CardContent className="pt-4 flex items-center gap-3"><Scale className="w-8 h-8 text-purple-500" /><div><p className="text-2xl font-bold">{dashboard.openConflicts}</p><p className="text-sm text-muted-foreground">Open Conflicts</p></div></CardContent></Card>
-          <Card><CardContent className="pt-4 flex items-center gap-3"><Calendar className="w-8 h-8 text-blue-500" /><div><p className="text-2xl font-bold">{dashboard.upcomingReturns}</p><p className="text-sm text-muted-foreground">Upcoming Returns</p></div></CardContent></Card>
+          <Card><CardContent className="pt-4 flex items-center gap-3"><Calendar className="w-8 h-8 text-primary" /><div><p className="text-2xl font-bold">{dashboard.upcomingReturns}</p><p className="text-sm text-muted-foreground">Upcoming Returns</p></div></CardContent></Card>
           <Card><CardContent className="pt-4 flex items-center gap-3"><FileCheck className="w-8 h-8 text-green-500" /><div><p className="text-2xl font-bold">{dashboard.reviewsDue30Days}</p><p className="text-sm text-muted-foreground">Due in 30 Days</p></div></CardContent></Card>
         </div>
       )}

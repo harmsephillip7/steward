@@ -43,7 +43,7 @@ export default function PortalDashboardPage() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardContent className="pt-6 flex items-center gap-3">
-            <Briefcase className="w-8 h-8 text-blue-500" />
+            <Briefcase className="w-8 h-8 text-primary" />
             <div><div className="text-xl font-bold">{portfolios.length}</div><p className="text-xs text-muted-foreground">Portfolios</p></div>
           </CardContent>
         </Card>

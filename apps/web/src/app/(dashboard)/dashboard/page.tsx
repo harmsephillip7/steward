@@ -20,7 +20,7 @@ import Link from 'next/link';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { formatCurrency } from '@/lib/format';
 
-const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#6b7280'];
+const COLORS = ['#003B43', '#D8CFB7', '#10b981', '#f59e0b', '#ef4444', '#006B78', '#8b5cf6', '#1F2A2D'];
 const stageLabels: Record<string, string> = {
   new: 'New', contacted: 'Contacted', discovery: 'Discovery', analysis: 'Analysis',
   proposal: 'Proposal', negotiation: 'Negotiation', won: 'Won', lost: 'Lost',

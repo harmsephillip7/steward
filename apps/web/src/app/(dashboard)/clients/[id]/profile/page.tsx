@@ -712,8 +712,8 @@ function LifeEventsTab({ clientId }: { clientId: string }) {
       <CardContent>
         <div className="space-y-4">
           {data?.map(e => (
-            <div key={e.id} className="flex gap-4 border-l-2 border-blue-200 pl-4 pb-4 relative">
-              <div className="absolute -left-[7px] top-0 w-3 h-3 rounded-full bg-blue-500" />
+            <div key={e.id} className="flex gap-4 border-l-2 border-primary/30 pl-4 pb-4 relative">
+              <div className="absolute -left-[7px] top-0 w-3 h-3 rounded-full bg-primary" />
               <div className="flex-1">
                 <div className="flex items-center gap-2">
                   <Badge variant="outline">{enumLabel(e.type)}</Badge>

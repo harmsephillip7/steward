@@ -29,7 +29,7 @@ export default function OnboardingWizardPage() {
   const [firmForm, setFirmForm] = useState({
     firm_name: '',
     fsp_number: '',
-    primary_colour_hex: '#1d4ed8',
+    primary_colour_hex: '#003B43',
   });
 
   // Client form

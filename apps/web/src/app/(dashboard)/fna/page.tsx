@@ -37,7 +37,7 @@ function PlanRow({ client }: { client: { id: string; first_name: string; last_na
           <Badge variant="secondary">Not started</Badge>
         )}
       </TableCell>
-      <TableCell className="text-gray-500 text-sm">
+      <TableCell className="text-muted-foreground text-sm">
         {latestPlan ? new Date(latestPlan.created_at).toLocaleDateString('en-ZA') : '—'}
       </TableCell>
       <TableCell className="text-sm">{plans?.length ?? 0}</TableCell>
@@ -63,8 +63,8 @@ export default function FNAPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Financial Planning</h1>
-          <p className="text-sm text-gray-500 mt-1">Financial Needs Analysis & Records of Advice</p>
+          <h1 className="text-2xl font-bold text-foreground">Financial Planning</h1>
+          <p className="text-sm text-muted-foreground mt-1">Financial Needs Analysis & Records of Advice</p>
         </div>
       </div>
 
@@ -99,8 +99,8 @@ export default function FNAPage() {
         <Card className="border-dashed">
           <CardContent className="flex flex-col items-center justify-center py-12 text-center">
             <FileText className="h-10 w-10 text-muted-foreground mb-3" />
-            <h3 className="font-semibold text-gray-900">No financial plans yet</h3>
-            <p className="text-sm text-gray-500 mt-1">Add clients first, then create FNAs and ROAs.</p>
+            <h3 className="font-semibold text-foreground">No financial plans yet</h3>
+            <p className="text-sm text-muted-foreground mt-1">Add clients first, then create FNAs and ROAs.</p>
           </CardContent>
         </Card>
       ) : (

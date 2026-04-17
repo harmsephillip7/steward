@@ -105,7 +105,7 @@ export default function FundDetailPage() {
   if (!fund) {
     return (
       <div className="text-center py-16">
-        <p className="text-gray-500">Fund not found.</p>
+        <p className="text-muted-foreground">Fund not found.</p>
         <Button variant="ghost" className="mt-4" onClick={() => router.back()}>Go back</Button>
       </div>
     );
@@ -118,9 +118,9 @@ export default function FundDetailPage() {
       {/* Header */}
       <div className="flex items-start justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{fund.name}</h1>
+          <h1 className="text-2xl font-bold text-foreground">{fund.name}</h1>
           {fund.isin && (
-            <p className="text-sm font-mono text-gray-500 mt-1">{fund.isin}</p>
+            <p className="text-sm font-mono text-muted-foreground mt-1">{fund.isin}</p>
           )}
         </div>
         <div className="flex items-center gap-3">
@@ -155,11 +155,11 @@ export default function FundDetailPage() {
         <CardContent>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
             <div>
-              <p className="text-gray-500 text-xs uppercase tracking-wide">Provider</p>
+              <p className="text-muted-foreground text-xs uppercase tracking-wide">Provider</p>
               <p className="font-medium mt-0.5">{fund.provider || '—'}</p>
             </div>
             <div>
-              <p className="text-gray-500 text-xs uppercase tracking-wide">Asset Class</p>
+              <p className="text-muted-foreground text-xs uppercase tracking-wide">Asset Class</p>
               <div className="mt-0.5">
                 {fund.asset_class ? (
                   <Badge variant="outline">{assetClassLabel(fund.asset_class)}</Badge>
@@ -167,24 +167,24 @@ export default function FundDetailPage() {
               </div>
             </div>
             <div>
-              <p className="text-gray-500 text-xs uppercase tracking-wide">Region</p>
+              <p className="text-muted-foreground text-xs uppercase tracking-wide">Region</p>
               <p className="mt-0.5 capitalize flex items-center gap-1">
-                <Globe className="h-3.5 w-3.5 text-gray-400" />
+                <Globe className="h-3.5 w-3.5 text-muted-foreground/70" />
                 {fund.region?.toUpperCase() || '—'}
               </p>
             </div>
             <div>
-              <p className="text-gray-500 text-xs uppercase tracking-wide">TER</p>
+              <p className="text-muted-foreground text-xs uppercase tracking-wide">TER</p>
               <p className="font-mono mt-0.5">
                 {fund.ter != null ? `${parseFloat(fund.ter).toFixed(2)}%` : '—'}
               </p>
             </div>
             <div>
-              <p className="text-gray-500 text-xs uppercase tracking-wide">Benchmark</p>
+              <p className="text-muted-foreground text-xs uppercase tracking-wide">Benchmark</p>
               <p className="mt-0.5">{fund.benchmark || '—'}</p>
             </div>
             <div>
-              <p className="text-gray-500 text-xs uppercase tracking-wide">Inception Date</p>
+              <p className="text-muted-foreground text-xs uppercase tracking-wide">Inception Date</p>
               <p className="mt-0.5">
                 {fund.inception_date
                   ? new Date(fund.inception_date).toLocaleDateString('en-ZA', {
@@ -236,7 +236,7 @@ export default function FundDetailPage() {
                       <TableCell className="text-sm">
                         {Math.round(parseFloat(flag.confidence_score) * 100)}%
                       </TableCell>
-                      <TableCell className="text-gray-500 text-sm capitalize">{flag.flagged_by}</TableCell>
+                      <TableCell className="text-muted-foreground text-sm capitalize">{flag.flagged_by}</TableCell>
                     </TableRow>
                   )),
                 )}
@@ -259,7 +259,7 @@ export default function FundDetailPage() {
               {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}
             </div>
           ) : !(holdings as Holding[])?.length ? (
-            <div className="px-6 py-8 text-center text-sm text-gray-500">
+            <div className="px-6 py-8 text-center text-sm text-muted-foreground">
               No holdings data available for this fund.
             </div>
           ) : (
@@ -283,9 +283,9 @@ export default function FundDetailPage() {
                       className={holding.compromise_flags.length > 0 ? 'bg-amber-50/30' : undefined}
                     >
                       <TableCell className="font-medium">{holding.company_name}</TableCell>
-                      <TableCell className="font-mono text-xs text-gray-500">{holding.isin || '—'}</TableCell>
-                      <TableCell className="text-gray-500">{holding.sector || '—'}</TableCell>
-                      <TableCell className="text-gray-500">{holding.country || '—'}</TableCell>
+                      <TableCell className="font-mono text-xs text-muted-foreground">{holding.isin || '—'}</TableCell>
+                      <TableCell className="text-muted-foreground">{holding.sector || '—'}</TableCell>
+                      <TableCell className="text-muted-foreground">{holding.country || '—'}</TableCell>
                       <TableCell className="text-right font-mono text-sm">
                         {parseFloat(holding.weight_pct).toFixed(1)}%
                       </TableCell>

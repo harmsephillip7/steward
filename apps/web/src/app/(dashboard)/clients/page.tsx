@@ -67,8 +67,8 @@ export default function ClientsPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Clients</h1>
-          <p className="text-sm text-gray-500 mt-1">{clients?.length ?? 0} active clients</p>
+          <h1 className="text-2xl font-bold text-foreground">Clients</h1>
+          <p className="text-sm text-muted-foreground mt-1">{clients?.length ?? 0} active clients</p>
         </div>
         <Button onClick={() => setOpen(true)}>
           <Plus className="mr-2 h-4 w-4" />
@@ -77,7 +77,7 @@ export default function ClientsPage() {
       </div>
 
       <div className="relative mb-4">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/70" />
         <Input
           placeholder="Search clients..."
           className="pl-9"
@@ -123,18 +123,18 @@ export default function ClientsPage() {
                   <TableCell className="font-medium">
                     {client.first_name} {client.last_name}
                   </TableCell>
-                  <TableCell className="text-gray-500">{client.email}</TableCell>
-                  <TableCell className="text-gray-500">{client.phone || '—'}</TableCell>
+                  <TableCell className="text-muted-foreground">{client.email}</TableCell>
+                  <TableCell className="text-muted-foreground">{client.phone || '—'}</TableCell>
                   <TableCell>
                     {client.risk_profile ? (
                       <Badge variant={riskColor[client.risk_profile.toLowerCase()] ?? 'outline'}>
                         {client.risk_profile}
                       </Badge>
                     ) : (
-                      <span className="text-gray-400 text-sm">—</span>
+                      <span className="text-muted-foreground/70 text-sm">—</span>
                     )}
                   </TableCell>
-                  <TableCell className="text-gray-500 text-sm">
+                  <TableCell className="text-muted-foreground text-sm">
                     {new Date(client.created_at).toLocaleDateString('en-ZA')}
                   </TableCell>
                 </TableRow>

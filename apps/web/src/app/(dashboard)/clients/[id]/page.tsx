@@ -71,7 +71,7 @@ export default function ClientDetailPage() {
   if (!client) {
     return (
       <div className="text-center py-16">
-        <p className="text-gray-500">Client not found.</p>
+        <p className="text-muted-foreground">Client not found.</p>
         <Button variant="ghost" className="mt-4" onClick={() => router.back()}>
           Go back
         </Button>
@@ -91,10 +91,10 @@ export default function ClientDetailPage() {
       {/* Header */}
       <div className="flex items-start justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-2xl font-bold text-foreground">
             {client.first_name} {client.last_name}
           </h1>
-          <p className="text-sm text-gray-500 mt-1">{client.email}</p>
+          <p className="text-sm text-muted-foreground mt-1">{client.email}</p>
         </div>
         <div className="flex items-center gap-2">
           <Button
@@ -137,27 +137,27 @@ export default function ClientDetailPage() {
           <CardContent>
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
-                <p className="text-gray-500 text-xs uppercase tracking-wide">ID Number</p>
+                <p className="text-muted-foreground text-xs uppercase tracking-wide">ID Number</p>
                 <p className="font-mono mt-0.5">{client.id_number || '—'}</p>
               </div>
               <div>
-                <p className="text-gray-500 text-xs uppercase tracking-wide">Tax Number</p>
+                <p className="text-muted-foreground text-xs uppercase tracking-wide">Tax Number</p>
                 <p className="font-mono mt-0.5">{client.tax_number || '—'}</p>
               </div>
               <div>
-                <p className="text-gray-500 text-xs uppercase tracking-wide">Date of Birth</p>
+                <p className="text-muted-foreground text-xs uppercase tracking-wide">Date of Birth</p>
                 <p className="mt-0.5">{client.dob ? formatDate(client.dob) : '—'}</p>
               </div>
               <div>
-                <p className="text-gray-500 text-xs uppercase tracking-wide">Phone</p>
+                <p className="text-muted-foreground text-xs uppercase tracking-wide">Phone</p>
                 <p className="mt-0.5">{client.phone || '—'}</p>
               </div>
               <div>
-                <p className="text-gray-500 text-xs uppercase tracking-wide">Tax Residency</p>
+                <p className="text-muted-foreground text-xs uppercase tracking-wide">Tax Residency</p>
                 <p className="mt-0.5 capitalize">{client.tax_residency?.replace(/_/g, ' ') || '—'}</p>
               </div>
               <div>
-                <p className="text-gray-500 text-xs uppercase tracking-wide">Client Since</p>
+                <p className="text-muted-foreground text-xs uppercase tracking-wide">Client Since</p>
                 <p className="mt-0.5">{formatDate(client.created_at)}</p>
               </div>
             </div>
@@ -195,7 +195,7 @@ export default function ClientDetailPage() {
               { label: 'Risk Profile', done: client.risk_profile_complete },
             ].map(({ label, done }) => (
               <div key={label} className="flex items-center justify-between text-sm">
-                <span className="text-gray-600">{label}</span>
+                <span className="text-muted-foreground">{label}</span>
                 <div className="flex items-center gap-1.5">
                   <StatusIcon done={done} />
                   <span className={done ? 'text-green-700 font-medium' : 'text-red-600 font-medium'}>
@@ -214,14 +214,14 @@ export default function ClientDetailPage() {
           <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
             <Briefcase className="h-4 w-4" />
             Portfolios
-            <span className="ml-auto text-xs font-normal text-gray-500">
+            <span className="ml-auto text-xs font-normal text-muted-foreground">
               Total: {formatCurrency(totalValue)}
             </span>
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           {client.portfolios?.length === 0 ? (
-            <div className="px-6 py-8 text-center text-sm text-gray-500">No portfolios yet.</div>
+            <div className="px-6 py-8 text-center text-sm text-muted-foreground">No portfolios yet.</div>
           ) : (
             <Table>
               <TableHeader>
@@ -242,7 +242,7 @@ export default function ClientDetailPage() {
                     <TableCell className="text-right font-mono">
                       {formatCurrency(p.total_value, p.currency)}
                     </TableCell>
-                    <TableCell className="text-gray-500">{formatDate(p.created_at)}</TableCell>
+                    <TableCell className="text-muted-foreground">{formatDate(p.created_at)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -261,7 +261,7 @@ export default function ClientDetailPage() {
         </CardHeader>
         <CardContent className="p-0">
           {client.records_of_advice?.length === 0 ? (
-            <div className="px-6 py-8 text-center text-sm text-gray-500">No records of advice yet.</div>
+            <div className="px-6 py-8 text-center text-sm text-muted-foreground">No records of advice yet.</div>
           ) : (
             <div className="divide-y">
               {client.records_of_advice?.map((roa) => (
@@ -269,8 +269,8 @@ export default function ClientDetailPage() {
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
-                        <Calendar className="h-3.5 w-3.5 text-gray-400" />
-                        <span className="text-xs text-gray-500">{formatDate(roa.advice_date)}</span>
+                        <Calendar className="h-3.5 w-3.5 text-muted-foreground/70" />
+                        <span className="text-xs text-muted-foreground">{formatDate(roa.advice_date)}</span>
                         {roa.signed_at ? (
                           <Badge className="bg-green-50 text-green-700 border-green-200 hover:bg-green-50 text-xs">
                             Signed {formatDate(roa.signed_at)}
@@ -281,7 +281,7 @@ export default function ClientDetailPage() {
                           </Badge>
                         )}
                       </div>
-                      <p className="text-sm text-gray-700 leading-relaxed">{roa.advice_summary}</p>
+                      <p className="text-sm text-foreground/80 leading-relaxed">{roa.advice_summary}</p>
                     </div>
                     {roa.pdf_url && (
                       <a
@@ -319,7 +319,7 @@ export default function ClientDetailPage() {
                   type="button"
                   onClick={() => setCompForm((f) => ({ ...f, [key]: !f[key] }))}
                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                    compForm[key] ? 'bg-green-600' : 'bg-gray-200'
+                    compForm[key] ? 'bg-green-600' : 'bg-muted'
                   }`}
                 >
                   <span

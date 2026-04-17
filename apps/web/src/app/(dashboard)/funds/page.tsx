@@ -53,8 +53,8 @@ export default function FundsPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Funds</h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <h1 className="text-2xl font-bold text-foreground">Funds</h1>
+          <p className="text-sm text-muted-foreground mt-1">
             {funds?.length ?? 0} faith & ESG screened funds
           </p>
         </div>
@@ -73,7 +73,7 @@ export default function FundsPage() {
       </div>
 
       <div className="relative mb-4">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/70" />
         <Input placeholder="Search by name or ISIN..." className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
       </div>
 
@@ -83,8 +83,8 @@ export default function FundsPage() {
         <Card className="border-dashed">
           <CardContent className="flex flex-col items-center justify-center py-12 text-center">
             <TrendingUp className="h-10 w-10 text-muted-foreground mb-3" />
-            <h3 className="font-semibold text-gray-900">No funds found</h3>
-            <p className="text-sm text-gray-500 mt-1">
+            <h3 className="font-semibold text-foreground">No funds found</h3>
+            <p className="text-sm text-muted-foreground mt-1">
               {search ? 'Try a different search.' : 'Fund data is loaded via the ingestion service.'}
             </p>
           </CardContent>
@@ -111,16 +111,16 @@ export default function FundsPage() {
                     onClick={() => router.push(`/funds/${fund.id}`)}
                   >
                     <TableCell className="font-medium">{fund.name}</TableCell>
-                    <TableCell className="text-gray-500">{fund.provider || '—'}</TableCell>
+                    <TableCell className="text-muted-foreground">{fund.provider || '—'}</TableCell>
                     <TableCell>
-                      {fund.asset_class ? <Badge variant="outline">{fund.asset_class}</Badge> : <span className="text-gray-400">—</span>}
+                      {fund.asset_class ? <Badge variant="outline">{fund.asset_class}</Badge> : <span className="text-muted-foreground/70">—</span>}
                     </TableCell>
-                    <TableCell className="text-gray-500">
+                    <TableCell className="text-muted-foreground">
                       {fund.ter != null ? `${parseFloat(fund.ter).toFixed(2)}%` : '—'}
                     </TableCell>
                     <TableCell>
                       {flagCount === null ? (
-                        <span className="text-gray-400 text-xs">Not screened</span>
+                        <span className="text-muted-foreground/70 text-xs">Not screened</span>
                       ) : flagCount === 0 ? (
                         <span className="inline-flex items-center gap-1 text-green-700 text-xs font-medium">
                           <CheckCircle className="h-3.5 w-3.5" /> Clean
