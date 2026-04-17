@@ -20,8 +20,17 @@ interface AuthState {
   token: string | null;
 }
 
+interface RegisterDto {
+  name: string;
+  email: string;
+  password: string;
+  firm_name: string;
+  fsp_number?: string;
+}
+
 interface AuthContextValue extends AuthState {
   login: (email: string, password: string) => Promise<void>;
+  register: (dto: RegisterDto) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
 }
@@ -81,6 +90,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     writeCookie(next);
   }, []);
 
+  const register = useCallback(async (dto: RegisterDto) => {
+    const res = await fetch(`${API_URL}/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(dto),
+    });
+
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(body.message || 'Registration failed');
+    }
+
+    const data = await res.json();
+    const next: AuthState = { token: data.access_token, advisor: data.advisor };
+    setState(next);
+    writeCookie(next);
+  }, []);
+
   const logout = useCallback(() => {
     setState({ advisor: null, token: null });
     clearCookie();
@@ -88,7 +115,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [router]);
 
   return (
-    <AuthContext.Provider value={{ ...state, login, logout, isAuthenticated: !!state.token }}>
+    <AuthContext.Provider value={{ ...state, login, register, logout, isAuthenticated: !!state.token }}>
       {children}
     </AuthContext.Provider>
   );

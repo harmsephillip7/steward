@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useAuth } from '@/lib/auth-context';
 
 export default function LoginPage() {
@@ -30,7 +31,9 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-brand-900 to-brand-700">
       <div className="bg-white rounded-2xl shadow-2xl p-10 w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-brand-700">Steward</h1>
+          <Link href="/" className="inline-block">
+            <h1 className="text-3xl font-bold text-brand-700">Steward</h1>
+          </Link>
           <p className="text-muted-foreground mt-1 text-sm">Christian Values Financial Advisory</p>
         </div>
 
@@ -71,6 +74,13 @@ export default function LoginPage() {
             {loading ? 'Signing in…' : 'Sign in'}
           </button>
         </form>
+
+        <p className="text-center text-sm text-muted-foreground mt-6">
+          Don&apos;t have an account?{' '}
+          <Link href="/signup" className="text-brand-600 hover:text-brand-700 font-medium">
+            Sign up
+          </Link>
+        </p>
       </div>
     </div>
   );
