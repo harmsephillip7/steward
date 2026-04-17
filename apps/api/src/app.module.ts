@@ -74,6 +74,7 @@ import { FirmModule } from './modules/firm/firm.module';
 // Entities — notifications
 import { Notification } from './modules/notifications/entities/notification.entity';
 import { NotificationsModule } from './modules/notifications/notifications.module';
+import { DashboardModule } from './modules/dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -138,6 +139,7 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
     PortalModule,
     FirmModule,
     NotificationsModule,
+    DashboardModule,
   ],
   controllers: [AppController],
   providers: [AppService],

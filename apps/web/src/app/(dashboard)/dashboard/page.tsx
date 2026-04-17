@@ -1,12 +1,6 @@
 'use client';
 
-import { useClients } from '@/lib/hooks/use-clients';
-import { useFunds } from '@/lib/hooks/use-funds';
-import { usePortfolios } from '@/lib/hooks/use-portfolios';
-import { usePipeline, useTasks } from '@/lib/hooks/use-crm';
-import { useComplianceDashboard } from '@/lib/hooks/use-enhanced-compliance';
-import { useCommissionSummary } from '@/lib/hooks/use-commissions';
-import { useAdvisoryDashboard } from '@/lib/hooks/use-advisory';
+import { useDashboardSummary } from '@/lib/hooks/use-dashboard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -17,10 +11,17 @@ import {
   AlertTriangle, CheckCircle2, Clock, Brain, ArrowRight, Plus,
 } from 'lucide-react';
 import Link from 'next/link';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import dynamic from 'next/dynamic';
 import { formatCurrency } from '@/lib/format';
 
-const COLORS = ['#003B43', '#D8CFB7', '#10b981', '#f59e0b', '#ef4444', '#006B78', '#8b5cf6', '#1F2A2D'];
+const PipelineChart = dynamic(() => import('./charts').then(m => ({ default: m.PipelineChart })), {
+  loading: () => <Skeleton className="h-[280px] w-full rounded-lg" />,
+  ssr: false,
+});
+const RevenueChart = dynamic(() => import('./charts').then(m => ({ default: m.RevenueChart })), {
+  loading: () => <Skeleton className="h-[280px] w-full rounded-lg" />,
+  ssr: false,
+});
 const stageLabels: Record<string, string> = {
   new: 'New', contacted: 'Contacted', discovery: 'Discovery', analysis: 'Analysis',
   proposal: 'Proposal', negotiation: 'Negotiation', won: 'Won', lost: 'Lost',
@@ -52,15 +53,9 @@ function StatCard({
 }
 
 export default function DashboardPage() {
-  const { data: clients, isLoading: loadingClients } = useClients();
-  const { data: funds, isLoading: loadingFunds } = useFunds();
-  const { data: portfolios, isLoading: loadingPortfolios } = usePortfolios();
-  const { data: pipeline = [] } = usePipeline();
-  const { data: compliance } = useComplianceDashboard();
-  const { data: commissions } = useCommissionSummary();
-  const { data: advisory } = useAdvisoryDashboard();
-  const { data: tasks = [] } = useTasks();
+  const { data: summary, isLoading } = useDashboardSummary();
 
+  const pipeline = summary?.pipeline || [];
   const activePipelineStages = pipeline.filter(s => s.stage !== 'won' && s.stage !== 'lost');
   const pipelineData = activePipelineStages.map(s => ({
     name: stageLabels[s.stage] || s.stage,
@@ -68,11 +63,12 @@ export default function DashboardPage() {
     value: s.total_value || 0,
   }));
 
-  const totalAUM = portfolios?.reduce((sum, p: any) => sum + (Number(p.total_value) || 0), 0) || 0;
   const pipelineValue = pipeline.reduce((s, p) => s + (p.total_value || 0), 0);
-  const activeLeads = pipeline.filter(s => s.stage !== 'won' && s.stage !== 'lost').reduce((s, p) => s + (p.count || 0), 0);
-  const upcomingTasks = tasks.filter((t: any) => !t.completed_at).slice(0, 5);
-  const overdueReviews = compliance?.overdueReviews || 0;
+  const activeLeads = activePipelineStages.reduce((s, p) => s + (p.count || 0), 0);
+  const upcomingTasks = summary?.tasks || [];
+  const overdueReviews = summary?.compliance?.overdueReviews || 0;
+  const advisory = summary?.advisory;
+  const commissions = summary?.commissions;
   const pendingAdvisory = advisory?.pending || 0;
 
   return (
@@ -94,92 +90,16 @@ export default function DashboardPage() {
 
       {/* Key Metrics */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Total Clients" value={clients?.length ?? 0} icon={Users} loading={loadingClients} description="Active relationships" href="/clients" />
-        <StatCard label="AUM" value={formatCurrency(totalAUM)} icon={Briefcase} loading={loadingPortfolios} description={`${portfolios?.length ?? 0} portfolios`} href="/portfolios" />
-        <StatCard label="Pipeline Value" value={formatCurrency(pipelineValue)} icon={Target} description={`${activeLeads} active leads`} href="/crm" />
-        <StatCard label="Revenue" value={formatCurrency(commissions?.totalReceived || 0)} icon={DollarSign} description={`${formatCurrency(commissions?.totalExpected || 0)} expected`} href="/commissions" />
+        <StatCard label="Total Clients" value={summary?.clients.count ?? 0} icon={Users} loading={isLoading} description="Active relationships" href="/clients" />
+        <StatCard label="AUM" value={formatCurrency(summary?.portfolios.totalAUM ?? 0)} icon={Briefcase} loading={isLoading} description={`${summary?.portfolios.count ?? 0} portfolios`} href="/portfolios" />
+        <StatCard label="Pipeline Value" value={formatCurrency(pipelineValue)} icon={Target} loading={isLoading} description={`${activeLeads} active leads`} href="/crm" />
+        <StatCard label="Revenue" value={formatCurrency(commissions?.totalReceived || 0)} icon={DollarSign} loading={isLoading} description={`${formatCurrency(commissions?.totalExpected || 0)} expected`} href="/commissions" />
       </div>
 
       {/* Charts Row */}
       <div className="grid lg:grid-cols-2 gap-4">
-        {/* Pipeline Chart */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-base">Sales Pipeline</CardTitle>
-            <Button asChild variant="ghost" size="sm">
-              <Link href="/crm">View all <ArrowRight className="w-3.5 h-3.5 ml-1" /></Link>
-            </Button>
-          </CardHeader>
-          <CardContent>
-            {pipelineData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={220}>
-                <BarChart data={pipelineData}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                  <XAxis dataKey="name" tick={{ fontSize: 12 }} className="text-muted-foreground" />
-                  <YAxis tick={{ fontSize: 12 }} className="text-muted-foreground" />
-                  <Tooltip
-                    contentStyle={{ borderRadius: '8px', border: '1px solid hsl(var(--border))', background: 'hsl(var(--card))' }}
-                    formatter={(value: number) => [value, 'Leads']}
-                  />
-                  <Bar dataKey="leads" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="flex flex-col items-center justify-center h-[220px] text-muted-foreground">
-                <Target className="h-8 w-8 mb-2" />
-                <p className="text-sm">No pipeline data yet</p>
-                <Button asChild size="sm" variant="link"><Link href="/crm">Add your first lead</Link></Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Revenue Breakdown */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-base">Revenue Breakdown</CardTitle>
-            <Button asChild variant="ghost" size="sm">
-              <Link href="/commissions">View all <ArrowRight className="w-3.5 h-3.5 ml-1" /></Link>
-            </Button>
-          </CardHeader>
-          <CardContent>
-            {commissions?.byType && Object.keys(commissions.byType).length > 0 ? (
-              <div className="flex items-center gap-8">
-                <ResponsiveContainer width={180} height={180}>
-                  <PieChart>
-                    <Pie
-                      data={Object.entries(commissions.byType).map(([name, value]) => ({ name: name.replace(/_/g, ' '), value: value as number }))}
-                      cx="50%" cy="50%" innerRadius={50} outerRadius={80}
-                      paddingAngle={3} dataKey="value"
-                    >
-                      {Object.keys(commissions.byType).map((_, i) => (
-                        <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={(value: number) => formatCurrency(value)} />
-                  </PieChart>
-                </ResponsiveContainer>
-                <div className="flex-1 space-y-2">
-                  {Object.entries(commissions.byType).map(([type, amount], i) => (
-                    <div key={type} className="flex items-center justify-between text-sm">
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
-                        <span className="capitalize">{type.replace(/_/g, ' ')}</span>
-                      </div>
-                      <span className="font-medium">{formatCurrency(amount as number)}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center h-[180px] text-muted-foreground">
-                <DollarSign className="h-8 w-8 mb-2" />
-                <p className="text-sm">No commission data yet</p>
-                <Button asChild size="sm" variant="link"><Link href="/commissions">Record a commission</Link></Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <PipelineChart data={pipelineData} />
+        <RevenueChart byType={commissions?.byType} />
       </div>
 
       {/* Bottom Row: Tasks, Compliance, Advisory */}
@@ -239,19 +159,19 @@ export default function DashboardPage() {
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm">Pending Reviews</span>
-                <Badge variant="outline">{compliance?.pendingReviews || 0}</Badge>
+                <Badge variant="outline">{summary?.compliance?.pendingReviews || 0}</Badge>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm">Open Conflicts</span>
-                <Badge variant="outline">{compliance?.openConflicts || 0}</Badge>
+                <Badge variant="outline">{summary?.compliance?.openConflicts || 0}</Badge>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm">Upcoming Returns</span>
-                <Badge variant="outline">{compliance?.upcomingReturns || 0}</Badge>
+                <Badge variant="outline">{summary?.compliance?.upcomingReturns || 0}</Badge>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm">Due in 30 Days</span>
-                <Badge variant={compliance?.reviewsDue30Days ? 'default' : 'secondary'}>{compliance?.reviewsDue30Days || 0}</Badge>
+                <Badge variant={summary?.compliance?.reviewsDue30Days ? 'default' : 'secondary'}>{summary?.compliance?.reviewsDue30Days || 0}</Badge>
               </div>
             </div>
           </CardContent>
@@ -310,7 +230,7 @@ export default function DashboardPage() {
 
       {/* Quick Stats Footer */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Screened Funds" value={funds?.length ?? 0} icon={TrendingUp} loading={loadingFunds} description="ESG & faith-screened" href="/funds" />
+        <StatCard label="Screened Funds" value={summary?.funds.count ?? 0} icon={TrendingUp} loading={isLoading} description="ESG & faith-screened" href="/funds" />
         <StatCard label="Pending Advisory" value={pendingAdvisory} icon={Brain} description="Awaiting review" href="/advisory" />
         <StatCard label="Compliance Score" value={overdueReviews === 0 ? 'Good' : 'Attention'} icon={Shield} description={overdueReviews > 0 ? `${overdueReviews} overdue` : 'All reviews current'} href="/compliance/dashboard" />
         <StatCard label="VAT Collected" value={formatCurrency(commissions?.totalVAT || 0)} icon={DollarSign} description="15% SA VAT" href="/commissions" />

@@ -18,6 +18,7 @@ export function useComplianceDashboard() {
       const { data } = await api.get<ComplianceDashboard>('/compliance/dashboard');
       return data;
     },
+    staleTime: 5 * 60 * 1000,
   });
 }
 

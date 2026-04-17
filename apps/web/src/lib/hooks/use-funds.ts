@@ -18,6 +18,7 @@ export function useFunds() {
       const { data } = await api.get<Fund[]>('/funds');
       return data;
     },
+    staleTime: 5 * 60 * 1000,
   });
 }
 

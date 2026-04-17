@@ -28,6 +28,7 @@ export function useCommissionSummary(year?: number) {
       const { data } = await api.get<CommissionSummary>(`/commissions/summary${params}`);
       return data;
     },
+    staleTime: 3 * 60 * 1000,
   });
 }
 

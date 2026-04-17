@@ -15,6 +15,7 @@ export function useAdvisoryDashboard() {
       const { data } = await api.get<AdvisoryDashboard>('/advisory/dashboard');
       return data;
     },
+    staleTime: 3 * 60 * 1000,
   });
 }
 
