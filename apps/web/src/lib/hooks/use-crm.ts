@@ -8,12 +8,17 @@ import type {
   ProposalType,
   OnboardingChecklistType,
   PipelineSummary,
+  DiscoveryData,
+  AnalysisData,
+  StageGuidance,
+  StageHistoryEntry,
 } from '@steward/shared';
 
 export const crmKeys = {
   leads: ['crm', 'leads'] as const,
   lead: (id: string) => ['crm', 'leads', id] as const,
   pipeline: ['crm', 'pipeline'] as const,
+  stageProgress: (id: string) => ['crm', 'stage-progress', id] as const,
   activities: (params?: Record<string, string>) => ['crm', 'activities', params] as const,
   tasks: (completed?: boolean) => ['crm', 'tasks', { completed }] as const,
   proposals: ['crm', 'proposals'] as const,
@@ -84,7 +89,10 @@ export function useUpdateLead(id?: string) {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: crmKeys.leads });
-      if (id) qc.invalidateQueries({ queryKey: crmKeys.lead(id) });
+      if (id) {
+        qc.invalidateQueries({ queryKey: crmKeys.lead(id) });
+        qc.invalidateQueries({ queryKey: crmKeys.stageProgress(id) });
+      }
       qc.invalidateQueries({ queryKey: crmKeys.pipeline });
       toast.success('Lead updated');
     },
@@ -102,9 +110,65 @@ export function useConvertLead(id: string) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: crmKeys.leads });
       qc.invalidateQueries({ queryKey: crmKeys.pipeline });
+      qc.invalidateQueries({ queryKey: crmKeys.lead(id) });
+      qc.invalidateQueries({ queryKey: crmKeys.stageProgress(id) });
       toast.success('Lead converted to client');
     },
     onError: () => toast.error('Failed to convert lead'),
+  });
+}
+
+// ── Stage Progress ─────────────────────────────────────────────
+
+export interface StageProgressResponse {
+  current_stage: string;
+  guidance: StageGuidance;
+  progress: { completed: number; total: number; pct: number; completedKeys: string[] };
+  time_in_stage_days: number;
+  stage_tasks: { total: number; completed: number };
+  stage_history: StageHistoryEntry[];
+}
+
+export function useStageProgress(id: string) {
+  return useQuery({
+    queryKey: crmKeys.stageProgress(id),
+    queryFn: async () => {
+      const { data } = await api.get<StageProgressResponse>(`/leads/${id}/stage-progress`);
+      return data;
+    },
+    enabled: !!id,
+  });
+}
+
+export function useUpdateDiscoveryData(id: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (discovery_data: DiscoveryData) => {
+      const { data } = await api.patch<LeadType>(`/leads/${id}`, { discovery_data });
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: crmKeys.lead(id) });
+      qc.invalidateQueries({ queryKey: crmKeys.stageProgress(id) });
+      toast.success('Discovery data saved');
+    },
+    onError: () => toast.error('Failed to save discovery data'),
+  });
+}
+
+export function useUpdateAnalysisData(id: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (analysis_data: AnalysisData) => {
+      const { data } = await api.patch<LeadType>(`/leads/${id}`, { analysis_data });
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: crmKeys.lead(id) });
+      qc.invalidateQueries({ queryKey: crmKeys.stageProgress(id) });
+      toast.success('Analysis data saved');
+    },
+    onError: () => toast.error('Failed to save analysis data'),
   });
 }
 

@@ -20,6 +20,7 @@ import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-
 import { CSS } from '@dnd-kit/utilities';
 import { useDroppable } from '@dnd-kit/core';
 import type { LeadType, LeadSource, LeadStage } from '@steward/shared';
+import { computeStageProgress } from '@steward/shared';
 
 const KANBAN_STAGES: LeadStage[] = ['new', 'contacted', 'discovery', 'analysis', 'proposal', 'negotiation'] as LeadStage[];
 const ALL_STAGES: LeadStage[] = [...KANBAN_STAGES, 'won', 'lost'] as LeadStage[];
@@ -96,6 +97,21 @@ function SortableLeadCard({ lead }: { lead: LeadType }) {
                   </span>
                 ) : null}
               </div>
+              {/* Stage progress indicator */}
+              {(() => {
+                const sp = computeStageProgress(lead as any, lead.stage);
+                return sp.total > 0 ? (
+                  <div className="mt-2">
+                    <div className="h-1 rounded-full bg-muted overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all ${sp.pct === 100 ? 'bg-green-500' : sp.pct >= 50 ? 'bg-primary' : 'bg-yellow-500'}`}
+                        style={{ width: `${sp.pct}%` }}
+                      />
+                    </div>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">{sp.completed}/{sp.total} stage actions</p>
+                  </div>
+                ) : null;
+              })()}
             </div>
           </div>
         </CardContent>

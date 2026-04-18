@@ -803,6 +803,9 @@ export interface LeadType {
   expected_close_date?: string;
   lost_reason?: string;
   converted_client_id?: string;
+  discovery_data?: DiscoveryData;
+  analysis_data?: AnalysisData;
+  stage_history?: StageHistoryEntry[];
   activities?: ActivityRecord[];
   tasks?: TaskType[];
   created_at: string;
@@ -832,6 +835,8 @@ export interface TaskType {
   due_date?: string;
   completed_at?: string;
   priority: TaskPriority;
+  stage?: LeadStage;
+  is_auto: boolean;
   created_at: string;
 }
 
@@ -1071,4 +1076,339 @@ export interface TeamMemberType {
   advisor_id: string;
   role?: string;
   advisor?: { id: string; name: string; email: string };
+}
+
+// ── Discovery & Analysis Semi-Structured Data ───────────────────
+
+export interface DiscoveryData {
+  /** What brought them to seek financial advice now? */
+  motivation?: string;
+  /** High-level financial goals (retirement, education, wealth, etc.) */
+  goals_overview?: string[];
+  /** Main financial pain points or concerns */
+  pain_points?: string[];
+  /** Life stage: early career, mid career, pre-retirement, retired, etc. */
+  life_stage?: string;
+  /** Family situation summary */
+  family_situation?: string;
+  /** Number of dependents */
+  number_of_dependents?: number;
+  /** Does the lead have an existing financial advisor? */
+  has_existing_advisor?: boolean;
+  /** Who is their current advisor / provider? */
+  current_advisor?: string;
+  /** Existing financial products (life cover, RA, TFSA, unit trusts, etc.) */
+  existing_products?: string[];
+  /** Approximate total investable assets (rough figure) */
+  estimated_investable_assets?: number;
+  /** Approximate monthly income (rough figure) */
+  estimated_monthly_income?: number;
+  /** Approximate monthly expenses (rough figure) */
+  estimated_monthly_expenses?: number;
+  /** Key concerns about money or financial planning */
+  key_concerns?: string[];
+  /** Preferred communication method (email, phone, in-person, WhatsApp) */
+  preferred_communication?: string;
+  /** Meeting notes / free-form discovery notes */
+  meeting_notes?: string;
+  /** Any custom fields */
+  custom_fields?: Record<string, any>;
+}
+
+export interface AnalysisData {
+  /** Preliminary risk tolerance (conservative, moderate, aggressive) */
+  risk_tolerance_preliminary?: string;
+  /** Monthly gross income */
+  monthly_gross_income?: number;
+  /** Monthly net income */
+  monthly_net_income?: number;
+  /** Monthly total expenses */
+  monthly_total_expenses?: number;
+  /** Monthly surplus/deficit */
+  monthly_surplus?: number;
+  /** Total assets (rough) */
+  total_assets?: number;
+  /** Total liabilities (rough) */
+  total_liabilities?: number;
+  /** Net worth estimate */
+  net_worth_estimate?: number;
+  /** Existing life cover amount */
+  existing_life_cover?: number;
+  /** Existing disability cover amount */
+  existing_disability_cover?: number;
+  /** Existing dread disease cover */
+  existing_dread_disease_cover?: number;
+  /** Has emergency fund? */
+  has_emergency_fund?: boolean;
+  /** Emergency fund months of expenses covered */
+  emergency_fund_months?: number;
+  /** Retirement fund total value */
+  retirement_fund_value?: number;
+  /** Monthly retirement contribution */
+  retirement_monthly_contribution?: number;
+  /** Insurance gaps identified */
+  insurance_gaps?: string[];
+  /** Investment gaps identified */
+  investment_gaps?: string[];
+  /** Tax planning opportunities */
+  tax_opportunities?: string[];
+  /** Estate planning status: none, basic_will, comprehensive */
+  estate_planning_status?: string;
+  /** Key recommendations summary (pre-proposal notes) */
+  preliminary_recommendations?: string[];
+  /** Analysis meeting notes */
+  analysis_notes?: string;
+  /** Any custom fields */
+  custom_fields?: Record<string, any>;
+}
+
+export interface StageHistoryEntry {
+  stage: LeadStage;
+  entered_at: string;
+  exited_at?: string;
+}
+
+// ── Stage Guidance Configuration ────────────────────────────────
+
+export interface StageAction {
+  key: string;
+  label: string;
+  /** Which data field(s) this action relates to — used for auto-completion detection */
+  data_fields?: string[];
+  required: boolean;
+}
+
+export interface StageGuidance {
+  stage: LeadStage;
+  title: string;
+  description: string;
+  objective: string;
+  recommended_actions: StageAction[];
+  suggested_tasks: { title: string; description?: string; priority: TaskPriority }[];
+  tips: string[];
+}
+
+export const STAGE_GUIDANCE: Record<LeadStage, StageGuidance> = {
+  [LeadStage.NEW]: {
+    stage: LeadStage.NEW,
+    title: 'New Lead',
+    description: 'A new prospect has entered your pipeline. Capture their basic details and qualify the lead.',
+    objective: 'Verify contact information and determine if this is a qualified prospect worth pursuing.',
+    recommended_actions: [
+      { key: 'contact_info', label: 'Verify contact information (email & phone)', data_fields: ['email', 'phone'], required: true },
+      { key: 'lead_source', label: 'Record lead source', data_fields: ['source'], required: true },
+      { key: 'initial_notes', label: 'Add initial notes about the lead', data_fields: ['notes'], required: false },
+      { key: 'expected_value', label: 'Estimate potential value', data_fields: ['expected_value'], required: false },
+    ],
+    suggested_tasks: [
+      { title: 'Verify contact details', description: 'Confirm email and phone number are correct', priority: TaskPriority.HIGH },
+      { title: 'Research prospect background', description: 'Look up company/LinkedIn for context', priority: TaskPriority.LOW },
+    ],
+    tips: [
+      'Respond to new leads within 24 hours for the best conversion rates.',
+      'Note where the lead came from — referral leads convert at 3x the rate.',
+    ],
+  },
+  [LeadStage.CONTACTED]: {
+    stage: LeadStage.CONTACTED,
+    title: 'Contacted',
+    description: 'You\'ve made first contact. Build rapport and schedule an initial discovery meeting.',
+    objective: 'Establish a relationship and book a discovery meeting to understand their needs.',
+    recommended_actions: [
+      { key: 'first_contact', label: 'Log first contact activity (call/email)', data_fields: [], required: true },
+      { key: 'schedule_discovery', label: 'Schedule a discovery meeting', data_fields: [], required: true },
+      { key: 'send_intro', label: 'Send introduction / welcome communication', data_fields: [], required: false },
+    ],
+    suggested_tasks: [
+      { title: 'Make introductory call', description: 'Introduce yourself and your services', priority: TaskPriority.HIGH },
+      { title: 'Send welcome email', description: 'Send introduction email with firm overview', priority: TaskPriority.MEDIUM },
+      { title: 'Schedule discovery meeting', description: 'Book a 60-minute discovery session', priority: TaskPriority.HIGH },
+    ],
+    tips: [
+      'Focus on listening, not selling. Ask open-ended questions about their financial concerns.',
+      'Send a brief agenda ahead of the discovery meeting so they feel prepared.',
+    ],
+  },
+  [LeadStage.DISCOVERY]: {
+    stage: LeadStage.DISCOVERY,
+    title: 'Discovery',
+    description: 'Conduct a thorough discovery meeting to understand the prospect\'s financial goals, current situation, and concerns.',
+    objective: 'Gather enough information to perform a meaningful financial analysis and needs assessment.',
+    recommended_actions: [
+      { key: 'goals', label: 'Capture financial goals', data_fields: ['discovery_data.goals_overview'], required: true },
+      { key: 'pain_points', label: 'Identify pain points and concerns', data_fields: ['discovery_data.pain_points', 'discovery_data.key_concerns'], required: true },
+      { key: 'family', label: 'Record family & dependent information', data_fields: ['discovery_data.family_situation', 'discovery_data.number_of_dependents'], required: true },
+      { key: 'existing_products', label: 'Document existing financial products', data_fields: ['discovery_data.existing_products'], required: true },
+      { key: 'income_expenses', label: 'Get rough income & expense picture', data_fields: ['discovery_data.estimated_monthly_income', 'discovery_data.estimated_monthly_expenses'], required: false },
+      { key: 'assets_estimate', label: 'Estimate investable assets', data_fields: ['discovery_data.estimated_investable_assets'], required: false },
+      { key: 'meeting_notes', label: 'Complete discovery meeting notes', data_fields: ['discovery_data.meeting_notes'], required: true },
+    ],
+    suggested_tasks: [
+      { title: 'Conduct discovery meeting', description: 'Complete 60-min discovery session covering goals, family, current finances', priority: TaskPriority.HIGH },
+      { title: 'Request existing policy documents', description: 'Ask client to share current policy schedules and statements', priority: TaskPriority.MEDIUM },
+      { title: 'Send discovery summary to prospect', description: 'Email a summary of what was discussed for confirmation', priority: TaskPriority.MEDIUM },
+    ],
+    tips: [
+      'Use the SPIN technique: Situation, Problem, Implication, Need-Payoff questions.',
+      'Ask "What keeps you up at night financially?" to uncover hidden concerns.',
+      'Document everything — these notes will form the basis of your Financial Needs Analysis.',
+      'Ask about their existing advisor relationship tactfully — understand why they\'re considering a change.',
+    ],
+  },
+  [LeadStage.ANALYSIS]: {
+    stage: LeadStage.ANALYSIS,
+    title: 'Analysis',
+    description: 'Analyse the prospect\'s financial situation, identify gaps, and assess their risk profile to prepare tailored recommendations.',
+    objective: 'Complete the Financial Needs Analysis (FNA) and identify insurance, investment, and planning gaps.',
+    recommended_actions: [
+      { key: 'risk_profile', label: 'Assess risk tolerance', data_fields: ['analysis_data.risk_tolerance_preliminary'], required: true },
+      { key: 'income_analysis', label: 'Analyse income & expenses', data_fields: ['analysis_data.monthly_gross_income', 'analysis_data.monthly_total_expenses', 'analysis_data.monthly_surplus'], required: true },
+      { key: 'net_worth', label: 'Calculate net worth estimate', data_fields: ['analysis_data.total_assets', 'analysis_data.total_liabilities', 'analysis_data.net_worth_estimate'], required: true },
+      { key: 'insurance_gaps', label: 'Identify insurance gaps', data_fields: ['analysis_data.insurance_gaps', 'analysis_data.existing_life_cover', 'analysis_data.existing_disability_cover'], required: true },
+      { key: 'investment_gaps', label: 'Identify investment & savings gaps', data_fields: ['analysis_data.investment_gaps', 'analysis_data.retirement_fund_value'], required: true },
+      { key: 'emergency_fund', label: 'Assess emergency fund status', data_fields: ['analysis_data.has_emergency_fund', 'analysis_data.emergency_fund_months'], required: false },
+      { key: 'recommendations', label: 'Draft preliminary recommendations', data_fields: ['analysis_data.preliminary_recommendations'], required: true },
+      { key: 'analysis_notes', label: 'Complete analysis notes', data_fields: ['analysis_data.analysis_notes'], required: false },
+    ],
+    suggested_tasks: [
+      { title: 'Complete risk profile questionnaire', description: 'Guide prospect through risk profiling exercise', priority: TaskPriority.HIGH },
+      { title: 'Perform insurance needs analysis', description: 'Calculate life cover, disability, and dread disease shortfalls', priority: TaskPriority.HIGH },
+      { title: 'Review existing policies', description: 'Analyse current policies for suitability and gaps', priority: TaskPriority.HIGH },
+      { title: 'Calculate retirement shortfall', description: 'Project retirement needs vs current provision', priority: TaskPriority.MEDIUM },
+      { title: 'Draft Financial Needs Analysis', description: 'Prepare the FNA document', priority: TaskPriority.HIGH },
+    ],
+    tips: [
+      'Use the "Rule of 72" to quickly illustrate the impact of fees and returns to clients.',
+      'Life cover needs: 10x annual income as a starting guideline, adjust for debts and dependents.',
+      'Check for Section 14 replacement requirements if recommending changes to existing policies.',
+      'Consider tax implications: RA contributions are deductible up to 27.5% of taxable income (max R350k/year).',
+    ],
+  },
+  [LeadStage.PROPOSAL]: {
+    stage: LeadStage.PROPOSAL,
+    title: 'Proposal',
+    description: 'Present your recommendations and financial proposal to the prospect.',
+    objective: 'Create and deliver a compelling proposal that addresses the prospect\'s identified needs and goals.',
+    recommended_actions: [
+      { key: 'create_proposal', label: 'Create a formal proposal', data_fields: [], required: true },
+      { key: 'prepare_roa', label: 'Prepare Record of Advice draft', data_fields: [], required: true },
+      { key: 'schedule_presentation', label: 'Schedule proposal presentation meeting', data_fields: [], required: true },
+      { key: 'send_proposal', label: 'Send proposal to prospect', data_fields: [], required: false },
+    ],
+    suggested_tasks: [
+      { title: 'Create proposal document', description: 'Build proposal with recommended products and projections', priority: TaskPriority.HIGH },
+      { title: 'Prepare Record of Advice', description: 'Draft ROA documenting rationale for recommendations', priority: TaskPriority.HIGH },
+      { title: 'Get product quotes', description: 'Request quotes from product providers', priority: TaskPriority.MEDIUM },
+      { title: 'Schedule proposal meeting', description: 'Book meeting to present recommendations', priority: TaskPriority.HIGH },
+    ],
+    tips: [
+      'Present no more than 3 options — too many choices lead to decision paralysis.',
+      'Always tie recommendations back to the goals and concerns identified in discovery.',
+      'Include a clear comparison to their current situation to show the value of change.',
+      'Prepare for common objections: "I need to think about it", "Can I afford this?", "What about my current advisor?"',
+    ],
+  },
+  [LeadStage.NEGOTIATION]: {
+    stage: LeadStage.NEGOTIATION,
+    title: 'Negotiation',
+    description: 'The prospect is considering your proposal. Address questions, handle objections, and work toward commitment.',
+    objective: 'Secure the prospect\'s agreement to proceed and prepare for client onboarding.',
+    recommended_actions: [
+      { key: 'follow_up', label: 'Follow up on proposal', data_fields: [], required: true },
+      { key: 'address_objections', label: 'Address any objections or concerns', data_fields: [], required: false },
+      { key: 'final_adjustments', label: 'Make any final proposal adjustments', data_fields: [], required: false },
+      { key: 'get_commitment', label: 'Obtain verbal or written commitment', data_fields: [], required: true },
+    ],
+    suggested_tasks: [
+      { title: 'Follow up on proposal', description: 'Check if prospect has questions or needs clarification', priority: TaskPriority.HIGH },
+      { title: 'Address client objections', description: 'Document and resolve any concerns raised', priority: TaskPriority.HIGH },
+      { title: 'Finalise proposal terms', description: 'Make any agreed adjustments to the proposal', priority: TaskPriority.MEDIUM },
+      { title: 'Prepare onboarding documents', description: 'Get FICA, mandate, and application forms ready', priority: TaskPriority.MEDIUM },
+    ],
+    tips: [
+      'The biggest objection is usually unspoken. Ask: "Is there anything holding you back from moving forward?"',
+      'Create urgency without pressure — mention tax year deadlines, market conditions, or cover waiting periods.',
+      'If the prospect wants to "think about it", schedule a specific follow-up date and time.',
+    ],
+  },
+  [LeadStage.WON]: {
+    stage: LeadStage.WON,
+    title: 'Won — Client Onboarding',
+    description: 'Congratulations! The prospect has committed. Now convert them to a client and complete the onboarding process.',
+    objective: 'Convert the lead to a client record, complete FICA/KYC, and submit all required documentation.',
+    recommended_actions: [
+      { key: 'convert_to_client', label: 'Convert lead to client record', data_fields: ['converted_client_id'], required: true },
+      { key: 'start_onboarding', label: 'Start onboarding checklist', data_fields: [], required: true },
+      { key: 'collect_documents', label: 'Collect all required documents', data_fields: [], required: true },
+      { key: 'submit_applications', label: 'Submit product applications', data_fields: [], required: false },
+    ],
+    suggested_tasks: [
+      { title: 'Convert lead to client', description: 'Create client record from lead data', priority: TaskPriority.URGENT },
+      { title: 'Collect FICA documents', description: 'ID copy, proof of address, proof of income', priority: TaskPriority.HIGH },
+      { title: 'Complete risk profile questionnaire', description: 'Formal risk profiling for records', priority: TaskPriority.HIGH },
+      { title: 'Get Record of Advice signed', description: 'Present and sign the ROA', priority: TaskPriority.HIGH },
+      { title: 'Submit product applications', description: 'Complete and submit all application forms', priority: TaskPriority.HIGH },
+      { title: 'Set up debit order / mandate', description: 'Arrange premium collection method', priority: TaskPriority.MEDIUM },
+    ],
+    tips: [
+      'Send a welcome pack within 24 hours of commitment.',
+      'Set expectations for the onboarding timeline — typically 2-4 weeks.',
+      'Schedule a 30-day check-in to confirm everything is in order.',
+    ],
+  },
+  [LeadStage.LOST]: {
+    stage: LeadStage.LOST,
+    title: 'Lost',
+    description: 'This lead did not convert. Record the reason and plan any future re-engagement.',
+    objective: 'Document why the lead was lost for future learning and plan potential re-engagement.',
+    recommended_actions: [
+      { key: 'lost_reason', label: 'Record reason for losing the lead', data_fields: ['lost_reason'], required: true },
+      { key: 'feedback', label: 'Request feedback from the prospect', data_fields: [], required: false },
+    ],
+    suggested_tasks: [
+      { title: 'Record lost reason', description: 'Document why this prospect did not convert', priority: TaskPriority.MEDIUM },
+      { title: 'Schedule re-engagement reminder', description: 'Set a 6-month reminder to re-engage', priority: TaskPriority.LOW },
+    ],
+    tips: [
+      'Always part on good terms — lost leads can become future clients or referral sources.',
+      'Analyse lost reasons quarterly to identify patterns in your sales process.',
+    ],
+  },
+};
+
+/** Helper: compute stage completion percentage based on lead data and guidance actions */
+export function computeStageProgress(lead: LeadType, stage: LeadStage): { completed: number; total: number; pct: number; completedKeys: string[] } {
+  const guidance = STAGE_GUIDANCE[stage];
+  if (!guidance) return { completed: 0, total: 0, pct: 0, completedKeys: [] };
+
+  const actions = guidance.recommended_actions;
+  const completedKeys: string[] = [];
+
+  for (const action of actions) {
+    let isComplete = false;
+    if (action.data_fields && action.data_fields.length > 0) {
+      isComplete = action.data_fields.some(field => {
+        const parts = field.split('.');
+        let value: any = lead;
+        for (const part of parts) {
+          value = value?.[part];
+        }
+        if (Array.isArray(value)) return value.length > 0;
+        if (typeof value === 'number') return true;
+        if (typeof value === 'boolean') return true;
+        return !!value;
+      });
+    }
+    // Check activities-based completion for actions without data_fields
+    if (!action.data_fields || action.data_fields.length === 0) {
+      // These are activity-based — check if there are activities/tasks matching this stage
+      if (action.key === 'first_contact') isComplete = (lead.activities?.length ?? 0) > 0;
+      if (action.key === 'convert_to_client') isComplete = !!lead.converted_client_id;
+    }
+    if (isComplete) completedKeys.push(action.key);
+  }
+
+  const total = actions.length;
+  const completed = completedKeys.length;
+  return { completed, total, pct: total > 0 ? Math.round((completed / total) * 100) : 0, completedKeys };
 }

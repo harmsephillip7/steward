@@ -2,20 +2,23 @@
 
 import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { useLead, useUpdateLead, useConvertLead, useActivities, useCreateActivity, useTasks, useCreateTask, useCompleteTask, useCompleteActivity } from '@/lib/hooks/use-crm';
+import { useLead, useUpdateLead, useConvertLead, useActivities, useCreateActivity, useTasks, useCreateTask, useCompleteTask, useCompleteActivity, useStageProgress, useUpdateDiscoveryData, useUpdateAnalysisData } from '@/lib/hooks/use-crm';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, UserCheck, Phone, Mail, Building, Calendar, CheckCircle2, Circle, Plus, Clock } from 'lucide-react';
+import { ArrowLeft, UserCheck, Phone, Mail, Building, Calendar, CheckCircle2, Circle, Plus, Clock, AlertTriangle } from 'lucide-react';
 import { Breadcrumbs } from '@/components/ui/breadcrumbs';
+import { StageGuidancePanel } from '@/components/crm/stage-guidance-panel';
+import { DiscoveryForm } from '@/components/crm/discovery-form';
+import { AnalysisForm } from '@/components/crm/analysis-form';
 import Link from 'next/link';
-import type { LeadStage } from '@steward/shared';
+import type { LeadStage, DiscoveryData, AnalysisData } from '@steward/shared';
 
 const STAGES: LeadStage[] = ['new', 'contacted', 'discovery', 'analysis', 'proposal', 'negotiation', 'won', 'lost'] as LeadStage[];
 const stageLabels: Record<string, string> = { new: 'New', contacted: 'Contacted', discovery: 'Discovery', analysis: 'Analysis', proposal: 'Proposal', negotiation: 'Negotiation', won: 'Won', lost: 'Lost' };
@@ -34,9 +37,14 @@ export default function LeadDetailPage() {
   const createTask = useCreateTask();
   const completeTask = useCompleteTask();
   const completeActivity = useCompleteActivity();
+  const { data: stageProgress } = useStageProgress(id);
+  const updateDiscovery = useUpdateDiscoveryData(id);
+  const updateAnalysis = useUpdateAnalysisData(id);
 
   const [actOpen, setActOpen] = useState(false);
   const [taskOpen, setTaskOpen] = useState(false);
+  const [convertOpen, setConvertOpen] = useState(false);
+  const [stageConfirm, setStageConfirm] = useState<{ target: LeadStage } | null>(null);
   const [actForm, setActForm] = useState({ type: 'call', subject: '', description: '' });
   const [taskForm, setTaskForm] = useState({ title: '', description: '', due_date: '', priority: 'medium' });
 
@@ -44,9 +52,37 @@ export default function LeadDetailPage() {
   if (!lead) return <p>Lead not found</p>;
 
   const leadTasks = tasks.filter(t => t.lead_id === id);
+  const stageTasks = leadTasks.filter(t => t.stage === lead.stage);
 
-  const handleStageChange = (stage: string) => updateLead.mutate({ stage: stage as LeadStage });
-  const handleConvert = () => convertLead.mutate(undefined, { onSuccess: (data: any) => router.push(`/clients/${data.converted_client_id || data.id}`) });
+  const handleStageChange = (stage: string) => {
+    const target = stage as LeadStage;
+    // If jumping ahead more than 1 stage, confirm
+    const currentIdx = STAGES.indexOf(lead.stage);
+    const targetIdx = STAGES.indexOf(target);
+    if (targetIdx > currentIdx + 1 && stageProgress && stageProgress.progress.pct < 100) {
+      setStageConfirm({ target });
+    } else {
+      updateLead.mutate({ stage: target });
+    }
+  };
+
+  const confirmStageChange = () => {
+    if (stageConfirm) {
+      updateLead.mutate({ stage: stageConfirm.target });
+      setStageConfirm(null);
+    }
+  };
+
+  const handleConvert = () => {
+    convertLead.mutate(undefined, {
+      onSuccess: (data: any) => {
+        setConvertOpen(false);
+        router.push(`/clients/${data.client?.id || data.converted_client_id}`);
+      },
+    });
+  };
+
+  const isConverted = !!lead.converted_client_id;
 
   return (
     <div className="space-y-6">
@@ -56,12 +92,56 @@ export default function LeadDetailPage() {
           <h1 className="text-2xl font-bold">{lead.first_name} {lead.last_name}</h1>
           {lead.company && <p className="text-muted-foreground">{lead.company}</p>}
         </div>
-        {lead.stage !== 'won' && lead.stage !== 'lost' && (
-          <Button onClick={handleConvert} className="bg-green-600 hover:bg-green-700">
-            <UserCheck className="w-4 h-4 mr-2" />Convert to Client
-          </Button>
+        {!isConverted && (
+          <Dialog open={convertOpen} onOpenChange={setConvertOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-green-600 hover:bg-green-700">
+                <UserCheck className="w-4 h-4 mr-2" />Convert to Client
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Convert Lead to Client</DialogTitle>
+                <DialogDescription>
+                  This will create a new client record from this lead{lead.stage !== 'won' ? ` (currently in "${stageLabels[lead.stage]}" stage)` : ''}.
+                  {stageProgress && stageProgress.progress.pct < 50 && (
+                    <span className="block mt-2 text-yellow-600">
+                      <AlertTriangle className="inline w-4 h-4 mr-1" />
+                      Stage progress is at {stageProgress.progress.pct}%. Some discovery or analysis data may be incomplete.
+                    </span>
+                  )}
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setConvertOpen(false)}>Cancel</Button>
+                <Button className="bg-green-600 hover:bg-green-700" onClick={handleConvert}>
+                  Convert Now
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        )}
+        {isConverted && (
+          <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">Converted</Badge>
         )}
       </div>
+
+      {/* Stage Change Confirmation Dialog */}
+      <Dialog open={!!stageConfirm} onOpenChange={open => !open && setStageConfirm(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Skip Stages?</DialogTitle>
+            <DialogDescription>
+              You&apos;re jumping from &quot;{stageLabels[lead.stage]}&quot; to &quot;{stageConfirm ? stageLabels[stageConfirm.target] : ''}&quot;.
+              Some recommended actions may not be completed. Are you sure?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setStageConfirm(null)}>Cancel</Button>
+            <Button onClick={confirmStageChange}>Proceed Anyway</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Pipeline Progress */}
       <div className="flex items-center gap-1">
@@ -77,6 +157,15 @@ export default function LeadDetailPage() {
           </button>
         ))}
       </div>
+
+      {/* Stage Guidance Panel */}
+      {stageProgress && (
+        <StageGuidancePanel
+          guidance={stageProgress.guidance}
+          progress={stageProgress.progress}
+          timeInStageDays={stageProgress.time_in_stage_days}
+        />
+      )}
 
       <div className="grid grid-cols-3 gap-6">
         {/* Lead Info */}
@@ -102,6 +191,8 @@ export default function LeadDetailPage() {
             <TabsList>
               <TabsTrigger value="activities">Activities ({activities.length})</TabsTrigger>
               <TabsTrigger value="tasks">Tasks ({leadTasks.length})</TabsTrigger>
+              <TabsTrigger value="discovery">Discovery</TabsTrigger>
+              <TabsTrigger value="analysis">Analysis</TabsTrigger>
             </TabsList>
 
             <TabsContent value="activities" className="space-y-4 mt-4">
@@ -185,11 +276,28 @@ export default function LeadDetailPage() {
                       <p className={`text-sm font-medium ${t.completed_at ? 'line-through text-muted-foreground' : ''}`}>{t.title}</p>
                       {t.due_date && <p className="text-xs text-muted-foreground">Due: {new Date(t.due_date).toLocaleDateString('en-ZA')}</p>}
                     </div>
+                    {(t as any).is_auto && <Badge variant="secondary" className="text-[10px]">Auto</Badge>}
                     <Badge variant="outline">{t.priority}</Badge>
                   </div>
                 ))}
                 {leadTasks.length === 0 && <p className="text-sm text-muted-foreground text-center py-8">No tasks yet</p>}
               </div>
+            </TabsContent>
+
+            <TabsContent value="discovery" className="mt-4">
+              <DiscoveryForm
+                defaultValues={(lead as any).discovery_data || {}}
+                onSubmit={(data) => updateDiscovery.mutate(data)}
+                isPending={updateDiscovery.isPending}
+              />
+            </TabsContent>
+
+            <TabsContent value="analysis" className="mt-4">
+              <AnalysisForm
+                defaultValues={(lead as any).analysis_data || {}}
+                onSubmit={(data) => updateAnalysis.mutate(data)}
+                isPending={updateAnalysis.isPending}
+              />
             </TabsContent>
           </Tabs>
         </div>

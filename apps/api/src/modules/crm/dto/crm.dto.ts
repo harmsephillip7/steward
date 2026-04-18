@@ -3,6 +3,7 @@ import {
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { LeadSource, LeadStage, TaskPriority, ActivityType, ProposalStatus } from '@steward/shared';
+import type { DiscoveryData, AnalysisData } from '@steward/shared';
 
 export class CreateLeadDto {
   @ApiProperty() @IsString() first_name: string;
@@ -31,6 +32,8 @@ export class UpdateLeadDto {
   @ApiProperty({ required: false }) @IsOptional() @IsNumber() expected_value?: number;
   @ApiProperty({ required: false }) @IsOptional() @IsDateString() expected_close_date?: string;
   @ApiProperty({ required: false }) @IsOptional() @IsString() lost_reason?: string;
+  @ApiProperty({ required: false }) @IsOptional() @IsObject() discovery_data?: DiscoveryData;
+  @ApiProperty({ required: false }) @IsOptional() @IsObject() analysis_data?: AnalysisData;
 }
 
 export class CreateActivityDto {
@@ -49,6 +52,8 @@ export class CreateTaskDto {
   @ApiProperty({ required: false }) @IsOptional() @IsString() description?: string;
   @ApiProperty({ required: false }) @IsOptional() @IsDateString() due_date?: string;
   @ApiProperty({ enum: TaskPriority, required: false }) @IsOptional() @IsEnum(TaskPriority) priority?: TaskPriority;
+  @ApiProperty({ enum: LeadStage, required: false }) @IsOptional() @IsEnum(LeadStage) stage?: LeadStage;
+  @ApiProperty({ required: false }) @IsOptional() @IsBoolean() is_auto?: boolean;
 }
 
 export class CreateProposalDto {

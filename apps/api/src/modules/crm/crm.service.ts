@@ -7,7 +7,8 @@ import { OnboardingChecklist } from './entities/onboarding-checklist.entity';
 import { Client } from '../clients/entities/client.entity';
 import { CreateLeadDto, UpdateLeadDto, CreateActivityDto, CreateTaskDto, CreateProposalDto, UpdateProposalDto } from './dto/crm.dto';
 import { AuditService } from '../audit/audit.service';
-import { LeadStage, OnboardingStatus, ProposalStatus } from '@steward/shared';
+import { LeadStage, OnboardingStatus, ProposalStatus, STAGE_GUIDANCE, computeStageProgress } from '@steward/shared';
+import type { StageHistoryEntry } from '@steward/shared';
 
 const DEFAULT_ONBOARDING_ITEMS = [
   { key: 'id_copy', label: 'ID document (certified copy)', required: true, completed: false },
@@ -39,9 +40,15 @@ export class CrmService {
   // ── Leads ────────────────────────────────────────────────────────
 
   async createLead(advisorId: string, dto: CreateLeadDto) {
-    const lead = this.leadRepo.create({ ...dto, advisor_id: advisorId });
+    const initialStage = dto.stage || LeadStage.NEW;
+    const stageHistory: StageHistoryEntry[] = [
+      { stage: initialStage, entered_at: new Date().toISOString() },
+    ];
+    const lead = this.leadRepo.create({ ...dto, advisor_id: advisorId, stage_history: stageHistory });
     const saved = await this.leadRepo.save(lead);
     await this.auditService.log(advisorId, 'lead.created', 'lead', saved.id);
+    // Generate auto-tasks for the initial stage
+    await this.generateStageTasks(saved.id, advisorId, initialStage);
     return saved;
   }
 
@@ -65,33 +72,131 @@ export class CrmService {
 
   async updateLead(id: string, advisorId: string, dto: UpdateLeadDto) {
     const lead = await this.findOneLead(id, advisorId);
+    const previousStage = lead.stage;
+    const newStage = dto.stage;
+
+    // Merge discovery_data and analysis_data (shallow merge with existing)
+    if (dto.discovery_data) {
+      lead.discovery_data = { ...(lead.discovery_data || {}), ...dto.discovery_data };
+      delete dto.discovery_data;
+    }
+    if (dto.analysis_data) {
+      lead.analysis_data = { ...(lead.analysis_data || {}), ...dto.analysis_data };
+      delete dto.analysis_data;
+    }
+
     Object.assign(lead, dto);
+
+    // Handle stage change
+    if (newStage && newStage !== previousStage) {
+      await this.onStageChange(lead, advisorId, previousStage, newStage);
+    }
+
     return this.leadRepo.save(lead);
+  }
+
+  /**
+   * Extensible stage-change hook. Called whenever a lead's stage changes.
+   * Add notification triggers, webhook calls, etc. here in the future.
+   */
+  private async onStageChange(lead: Lead, advisorId: string, fromStage: LeadStage, toStage: LeadStage) {
+    // 1. Update stage history
+    const history = lead.stage_history || [];
+    // Close the previous stage entry
+    const currentEntry = history.find(h => h.stage === fromStage && !h.exited_at);
+    if (currentEntry) {
+      currentEntry.exited_at = new Date().toISOString();
+    }
+    // Add new stage entry
+    history.push({ stage: toStage, entered_at: new Date().toISOString() });
+    lead.stage_history = history;
+
+    // 2. Generate auto-tasks for the new stage
+    await this.generateStageTasks(lead.id, advisorId, toStage);
+
+    // 3. Audit log
+    await this.auditService.log(advisorId, 'lead.stage_changed', 'lead', lead.id, { from: fromStage, to: toStage });
+
+    // Future extension point: notifications, webhooks, email triggers, etc.
+  }
+
+  /**
+   * Create suggested tasks for a given pipeline stage.
+   * Only creates tasks that don't already exist for this lead+stage.
+   */
+  private async generateStageTasks(leadId: string, advisorId: string, stage: LeadStage) {
+    const guidance = STAGE_GUIDANCE[stage];
+    if (!guidance) return;
+
+    // Check which auto-tasks already exist for this lead+stage
+    const existingTasks = await this.taskRepo.find({
+      where: { lead_id: leadId, stage, is_auto: true },
+    });
+    const existingTitles = new Set(existingTasks.map(t => t.title));
+
+    const newTasks = guidance.suggested_tasks
+      .filter(st => !existingTitles.has(st.title))
+      .map(st => this.taskRepo.create({
+        lead_id: leadId,
+        advisor_id: advisorId,
+        title: st.title,
+        description: st.description,
+        priority: st.priority,
+        stage,
+        is_auto: true,
+      }));
+
+    if (newTasks.length > 0) {
+      await this.taskRepo.save(newTasks);
+    }
   }
 
   async convertLead(id: string, advisorId: string) {
     const lead = await this.findOneLead(id, advisorId);
-    if (lead.stage === LeadStage.WON) throw new BadRequestException('Lead already converted');
+    if (lead.converted_client_id) throw new BadRequestException('Lead already converted');
 
-    // Create client from lead
-    const client = this.clientRepo.create({
+    // Create client from lead — transfer all available data
+    const clientData: Record<string, any> = {
       advisor_id: advisorId,
       first_name: lead.first_name,
       last_name: lead.last_name,
       email: lead.email,
       phone: lead.phone,
-    });
+    };
+
+    // Transfer discovery data to client profile if available
+    if (lead.discovery_data) {
+      if (lead.discovery_data.estimated_monthly_income) {
+        clientData.annual_gross_income = lead.discovery_data.estimated_monthly_income * 12;
+      }
+      if (lead.discovery_data.family_situation) {
+        clientData.notes = `Family: ${lead.discovery_data.family_situation}`;
+      }
+    }
+
+    // Transfer analysis data to client profile if available
+    if (lead.analysis_data) {
+      if (lead.analysis_data.risk_tolerance_preliminary) {
+        clientData.risk_profile = lead.analysis_data.risk_tolerance_preliminary;
+      }
+    }
+
+    const client = this.clientRepo.create(clientData);
     const savedClient = await this.clientRepo.save(client);
 
-    // Update lead
+    // Track stage change to WON
+    const previousStage = lead.stage;
     lead.stage = LeadStage.WON;
     lead.converted_client_id = savedClient.id;
+    if (previousStage !== LeadStage.WON) {
+      await this.onStageChange(lead, advisorId, previousStage, LeadStage.WON);
+    }
     await this.leadRepo.save(lead);
 
     // Create onboarding checklist
     await this.createOnboarding(savedClient.id, advisorId);
 
-    await this.auditService.log(advisorId, 'lead.converted', 'lead', id, { client_id: savedClient.id });
+    await this.auditService.log(advisorId, 'lead.converted', 'lead', id, { client_id: savedClient.id, from_stage: previousStage });
     return { lead, client: savedClient };
   }
 
@@ -108,6 +213,31 @@ export class CrmService {
       };
     });
     return pipeline;
+  }
+
+  async getStageProgress(id: string, advisorId: string) {
+    const lead = await this.findOneLead(id, advisorId);
+    const guidance = STAGE_GUIDANCE[lead.stage];
+    const progress = computeStageProgress(lead as any, lead.stage);
+
+    // Calculate time in current stage
+    const currentHistoryEntry = (lead.stage_history || []).find(h => h.stage === lead.stage && !h.exited_at);
+    const timeInStage = currentHistoryEntry
+      ? Math.floor((Date.now() - new Date(currentHistoryEntry.entered_at).getTime()) / (1000 * 60 * 60 * 24))
+      : 0;
+
+    // Get stage-specific tasks
+    const stageTasks = (lead.tasks || []).filter(t => t.stage === lead.stage);
+    const tasksCompleted = stageTasks.filter(t => t.completed_at).length;
+
+    return {
+      current_stage: lead.stage,
+      guidance,
+      progress,
+      time_in_stage_days: timeInStage,
+      stage_tasks: { total: stageTasks.length, completed: tasksCompleted },
+      stage_history: lead.stage_history || [],
+    };
   }
 
   // ── Activities ───────────────────────────────────────────────────

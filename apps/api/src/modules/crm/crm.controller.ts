@@ -45,6 +45,11 @@ export class CrmController {
     return this.crm.convertLead(id, req.user.id);
   }
 
+  @Get('leads/:id/stage-progress')
+  getStageProgress(@Request() req: any, @Param('id') id: string) {
+    return this.crm.getStageProgress(id, req.user.id);
+  }
+
   // ── Activities ───────────────────────────────────────────────────
 
   @Post('activities')

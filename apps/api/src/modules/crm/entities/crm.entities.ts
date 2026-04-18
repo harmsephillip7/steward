@@ -9,6 +9,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { LeadSource, LeadStage, TaskPriority } from '@steward/shared';
+import type { DiscoveryData, AnalysisData, StageHistoryEntry } from '@steward/shared';
 import { Advisor } from '../../advisors/entities/advisor.entity';
 import { Client } from '../../clients/entities/client.entity';
 
@@ -69,6 +70,15 @@ export class Lead {
   @ManyToOne(() => Client, { nullable: true })
   @JoinColumn({ name: 'converted_client_id' })
   converted_client: Client;
+
+  @Column({ type: 'jsonb', nullable: true })
+  discovery_data: DiscoveryData;
+
+  @Column({ type: 'jsonb', nullable: true })
+  analysis_data: AnalysisData;
+
+  @Column({ type: 'jsonb', default: [] })
+  stage_history: StageHistoryEntry[];
 
   @OneToMany(() => Activity, (a) => a.lead)
   activities: Activity[];
@@ -168,6 +178,12 @@ export class Task {
 
   @Column({ type: 'enum', enum: TaskPriority, default: TaskPriority.MEDIUM })
   priority: TaskPriority;
+
+  @Column({ type: 'enum', enum: LeadStage, nullable: true })
+  stage: LeadStage;
+
+  @Column({ default: false })
+  is_auto: boolean;
 
   @CreateDateColumn()
   created_at: Date;
