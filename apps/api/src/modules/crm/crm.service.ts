@@ -5,9 +5,13 @@ import { Lead, Activity, Task } from './entities/crm.entities';
 import { Proposal } from './entities/proposal.entity';
 import { OnboardingChecklist } from './entities/onboarding-checklist.entity';
 import { Client } from '../clients/entities/client.entity';
+import { Dependent } from '../clients/entities/dependent.entity';
+import { IncomeExpense } from '../clients/entities/income-expense.entity';
+import { ClientAsset } from '../clients/entities/client-asset.entity';
+import { Liability } from '../clients/entities/liability.entity';
 import { CreateLeadDto, UpdateLeadDto, CreateActivityDto, CreateTaskDto, CreateProposalDto, UpdateProposalDto } from './dto/crm.dto';
 import { AuditService } from '../audit/audit.service';
-import { LeadStage, OnboardingStatus, ProposalStatus, STAGE_GUIDANCE, computeStageProgress } from '@steward/shared';
+import { LeadStage, OnboardingStatus, ProposalStatus, STAGE_GUIDANCE, computeStageProgress, IncomeExpenseType, Frequency } from '@steward/shared';
 import type { StageHistoryEntry } from '@steward/shared';
 
 const DEFAULT_ONBOARDING_ITEMS = [
@@ -34,6 +38,10 @@ export class CrmService {
     @InjectRepository(Proposal) private readonly proposalRepo: Repository<Proposal>,
     @InjectRepository(OnboardingChecklist) private readonly onboardingRepo: Repository<OnboardingChecklist>,
     @InjectRepository(Client) private readonly clientRepo: Repository<Client>,
+    @InjectRepository(Dependent) private readonly dependentRepo: Repository<Dependent>,
+    @InjectRepository(IncomeExpense) private readonly incomeExpenseRepo: Repository<IncomeExpense>,
+    @InjectRepository(ClientAsset) private readonly clientAssetRepo: Repository<ClientAsset>,
+    @InjectRepository(Liability) private readonly liabilityRepo: Repository<Liability>,
     private readonly auditService: AuditService,
   ) {}
 
@@ -155,7 +163,10 @@ export class CrmService {
     const lead = await this.findOneLead(id, advisorId);
     if (lead.converted_client_id) throw new BadRequestException('Lead already converted');
 
-    // Create client from lead — transfer all available data
+    const disc = lead.discovery_data || {};
+    const anal = lead.analysis_data || {};
+
+    // ── Build client record from discovery + analysis data ──
     const clientData: Record<string, any> = {
       advisor_id: advisorId,
       first_name: lead.first_name,
@@ -164,25 +175,174 @@ export class CrmService {
       phone: lead.phone,
     };
 
-    // Transfer discovery data to client profile if available
-    if (lead.discovery_data) {
-      if (lead.discovery_data.estimated_monthly_income) {
-        clientData.annual_gross_income = lead.discovery_data.estimated_monthly_income * 12;
-      }
-      if (lead.discovery_data.family_situation) {
-        clientData.notes = `Family: ${lead.discovery_data.family_situation}`;
-      }
+    // Personal details from discovery
+    if (disc.id_number) clientData.id_number = disc.id_number;
+    if (disc.tax_number) clientData.tax_number = disc.tax_number;
+    if (disc.date_of_birth) clientData.dob = disc.date_of_birth;
+    if (disc.marital_status) {
+      const msMap: Record<string, string> = {
+        'Single': 'single', 'Married (COP)': 'married_cop', 'Married (AOP)': 'married_aop',
+        'Divorced': 'divorced', 'Widowed': 'widowed', 'Life Partner': 'life_partner',
+      };
+      clientData.marital_status = msMap[disc.marital_status] || disc.marital_status;
+    }
+    if (disc.spouse_name) clientData.spouse_name = disc.spouse_name;
+    if (disc.spouse_id_number) clientData.spouse_id_number = disc.spouse_id_number;
+    if (disc.spouse_dob) clientData.spouse_dob = disc.spouse_dob;
+
+    // Employment
+    if (disc.employment_status) {
+      const esMap: Record<string, string> = {
+        'Employed': 'employed', 'Self-Employed': 'self_employed', 'Retired': 'retired',
+        'Unemployed': 'unemployed', 'Student': 'student',
+      };
+      clientData.employment_status = esMap[disc.employment_status] || disc.employment_status;
+    }
+    if (disc.occupation) clientData.occupation = disc.occupation;
+    if (disc.employer) clientData.employer = disc.employer;
+    if (disc.industry) clientData.industry = disc.industry;
+    if (disc.retirement_age_target) clientData.retirement_age_target = disc.retirement_age_target;
+
+    // Tax
+    if (disc.tax_residency) {
+      clientData.tax_residency = disc.tax_residency === 'SA Resident' ? 'sa_resident' : 'non_resident';
     }
 
-    // Transfer analysis data to client profile if available
-    if (lead.analysis_data) {
-      if (lead.analysis_data.risk_tolerance_preliminary) {
-        clientData.risk_profile = lead.analysis_data.risk_tolerance_preliminary;
-      }
+    // Health
+    if (disc.smoker != null) clientData.smoker = disc.smoker;
+    if (disc.health_status) {
+      const hsMap: Record<string, string> = { 'Excellent': 'excellent', 'Good': 'good', 'Fair': 'fair', 'Poor': 'poor' };
+      clientData.health_status = hsMap[disc.health_status] || disc.health_status;
     }
+
+    // Income from analysis or discovery
+    if (anal.income_breakdown?.salary) {
+      const ib = anal.income_breakdown;
+      const monthlyTotal = (ib.salary || 0) + (ib.bonus_commission || 0) + (ib.rental_income || 0) +
+        (ib.investment_income || 0) + (ib.business_income || 0) + (ib.maintenance_received || 0) + (ib.other_income || 0);
+      clientData.annual_gross_income = monthlyTotal * 12;
+    } else if (disc.estimated_monthly_income) {
+      clientData.annual_gross_income = disc.estimated_monthly_income * 12;
+    }
+
+    // Risk profile from analysis
+    if (anal.risk_tolerance_preliminary) {
+      clientData.risk_profile = anal.risk_tolerance_preliminary.toLowerCase().replace(/-/g, '_');
+    }
+
+    // Notes
+    const notesParts: string[] = [];
+    if (disc.family_situation) notesParts.push(`Family: ${disc.family_situation}`);
+    if (disc.health_conditions) notesParts.push(`Health: ${disc.health_conditions}`);
+    if (disc.meeting_notes) notesParts.push(`Discovery Notes: ${disc.meeting_notes}`);
+    if (anal.analysis_notes) notesParts.push(`Analysis Notes: ${anal.analysis_notes}`);
+    if (notesParts.length > 0) clientData.notes = notesParts.join('\n\n');
 
     const client = this.clientRepo.create(clientData);
     const savedClient = await this.clientRepo.save(client);
+
+    // ── Auto-create Dependents from discovery ──
+    if (disc.dependents_details?.length) {
+      const depMap: Record<string, string> = { 'Child': 'child', 'Spouse': 'spouse', 'Parent': 'parent', 'Sibling': 'sibling', 'Other': 'other' };
+      const deps = disc.dependents_details.map(d => this.dependentRepo.create({
+        client_id: savedClient.id,
+        name: d.name || 'Unknown',
+        relationship: (depMap[d.relationship || ''] || 'other') as any,
+        dob: d.dob ? new Date(d.dob) : undefined,
+        is_student: d.is_student || false,
+        special_needs: d.special_needs || false,
+        monthly_support_amount: d.monthly_support_amount,
+      }));
+      await this.dependentRepo.save(deps);
+    }
+
+    // ── Auto-create Income/Expense records from analysis breakdowns ──
+    if (anal.income_breakdown) {
+      const ib = anal.income_breakdown;
+      const incomeEntries: { category: string; amount: number }[] = [];
+      if (ib.salary) incomeEntries.push({ category: 'Salary', amount: ib.salary });
+      if (ib.bonus_commission) incomeEntries.push({ category: 'Bonus/Commission', amount: ib.bonus_commission });
+      if (ib.rental_income) incomeEntries.push({ category: 'Rental Income', amount: ib.rental_income });
+      if (ib.investment_income) incomeEntries.push({ category: 'Investment Income', amount: ib.investment_income });
+      if (ib.business_income) incomeEntries.push({ category: 'Business Income', amount: ib.business_income });
+      if (ib.maintenance_received) incomeEntries.push({ category: 'Maintenance Received', amount: ib.maintenance_received });
+      if (ib.other_income) incomeEntries.push({ category: 'Other Income', amount: ib.other_income });
+
+      const records = incomeEntries.map(e => this.incomeExpenseRepo.create({
+        client_id: savedClient.id,
+        type: IncomeExpenseType.INCOME,
+        category: e.category,
+        amount: e.amount,
+        frequency: Frequency.MONTHLY,
+        is_recurring: true,
+      }));
+      if (records.length) await this.incomeExpenseRepo.save(records);
+    }
+
+    if (anal.expense_breakdown) {
+      const eb = anal.expense_breakdown;
+      const expenseEntries: { category: string; amount: number }[] = [];
+      if (eb.housing) expenseEntries.push({ category: 'Housing', amount: eb.housing });
+      if (eb.transport) expenseEntries.push({ category: 'Transport', amount: eb.transport });
+      if (eb.food_groceries) expenseEntries.push({ category: 'Food & Groceries', amount: eb.food_groceries });
+      if (eb.medical) expenseEntries.push({ category: 'Medical', amount: eb.medical });
+      if (eb.insurance_premiums) expenseEntries.push({ category: 'Insurance Premiums', amount: eb.insurance_premiums });
+      if (eb.education_school_fees) expenseEntries.push({ category: 'Education/School Fees', amount: eb.education_school_fees });
+      if (eb.entertainment_lifestyle) expenseEntries.push({ category: 'Entertainment & Lifestyle', amount: eb.entertainment_lifestyle });
+      if (eb.debt_repayments) expenseEntries.push({ category: 'Debt Repayments', amount: eb.debt_repayments });
+      if (eb.savings_investments) expenseEntries.push({ category: 'Savings & Investments', amount: eb.savings_investments });
+      if (eb.other_expenses) expenseEntries.push({ category: 'Other Expenses', amount: eb.other_expenses });
+
+      const records = expenseEntries.map(e => this.incomeExpenseRepo.create({
+        client_id: savedClient.id,
+        type: IncomeExpenseType.EXPENSE,
+        category: e.category,
+        amount: e.amount,
+        frequency: Frequency.MONTHLY,
+        is_recurring: true,
+      }));
+      if (records.length) await this.incomeExpenseRepo.save(records);
+    }
+
+    // ── Auto-create Asset records from analysis ──
+    if (anal.assets_details?.length) {
+      const catMap: Record<string, string> = {
+        'Property': 'property', 'Vehicle': 'vehicle', 'Investment': 'investment',
+        'Retirement Fund': 'retirement_fund', 'TFSA': 'tfsa', 'RA': 'ra',
+        'Savings': 'savings', 'Business': 'business', 'Collectible': 'collectible', 'Other': 'other',
+      };
+      const assets = anal.assets_details
+        .filter(a => a.current_value)
+        .map(a => this.clientAssetRepo.create({
+          client_id: savedClient.id,
+          category: (catMap[a.category || ''] || 'other') as any,
+          description: a.description || 'Asset',
+          provider: a.provider,
+          current_value: a.current_value,
+          monthly_contribution: a.monthly_contribution,
+        }));
+      if (assets.length) await this.clientAssetRepo.save(assets);
+    }
+
+    // ── Auto-create Liability records from analysis ──
+    if (anal.liabilities_details?.length) {
+      const catMap: Record<string, string> = {
+        'Mortgage': 'mortgage', 'Vehicle Finance': 'vehicle_finance', 'Personal Loan': 'personal_loan',
+        'Credit Card': 'credit_card', 'Student Loan': 'student_loan', 'Overdraft': 'overdraft', 'Other': 'other',
+      };
+      const liabs = anal.liabilities_details
+        .filter(l => l.outstanding_balance)
+        .map(l => this.liabilityRepo.create({
+          client_id: savedClient.id,
+          category: (catMap[l.category || ''] || 'other') as any,
+          description: l.description || 'Liability',
+          provider: l.provider,
+          outstanding_balance: l.outstanding_balance,
+          monthly_repayment: l.monthly_repayment || 0,
+          interest_rate: l.interest_rate,
+        }));
+      if (liabs.length) await this.liabilityRepo.save(liabs);
+    }
 
     // Track stage change to WON
     const previousStage = lead.stage;

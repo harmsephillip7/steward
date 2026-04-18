@@ -1080,85 +1080,197 @@ export interface TeamMemberType {
 
 // ── Discovery & Analysis Semi-Structured Data ───────────────────
 
+export interface DependentDetail {
+  name?: string;
+  relationship?: string;
+  dob?: string;
+  is_student?: boolean;
+  special_needs?: boolean;
+  monthly_support_amount?: number;
+}
+
+export interface EducationNeed {
+  dependent_name?: string;
+  current_age?: number;
+  education_type?: string; // primary, secondary, tertiary
+  target_year?: number;
+  estimated_annual_cost?: number;
+  funding_in_place?: number;
+}
+
+export interface IncomeBreakdown {
+  salary?: number;
+  bonus_commission?: number;
+  rental_income?: number;
+  investment_income?: number;
+  business_income?: number;
+  maintenance_received?: number;
+  other_income?: number;
+}
+
+export interface ExpenseBreakdown {
+  housing?: number;
+  transport?: number;
+  food_groceries?: number;
+  medical?: number;
+  insurance_premiums?: number;
+  education_school_fees?: number;
+  entertainment_lifestyle?: number;
+  debt_repayments?: number;
+  savings_investments?: number;
+  other_expenses?: number;
+}
+
+export interface AssetDetail {
+  description?: string;
+  category?: string;
+  provider?: string;
+  current_value?: number;
+  monthly_contribution?: number;
+}
+
+export interface LiabilityDetail {
+  description?: string;
+  category?: string;
+  provider?: string;
+  outstanding_balance?: number;
+  monthly_repayment?: number;
+  interest_rate?: number;
+}
+
 export interface DiscoveryData {
-  /** What brought them to seek financial advice now? */
+  // ── Motivation & Goals ──
   motivation?: string;
-  /** High-level financial goals (retirement, education, wealth, etc.) */
   goals_overview?: string[];
-  /** Main financial pain points or concerns */
   pain_points?: string[];
-  /** Life stage: early career, mid career, pre-retirement, retired, etc. */
-  life_stage?: string;
-  /** Family situation summary */
-  family_situation?: string;
-  /** Number of dependents */
-  number_of_dependents?: number;
-  /** Does the lead have an existing financial advisor? */
-  has_existing_advisor?: boolean;
-  /** Who is their current advisor / provider? */
-  current_advisor?: string;
-  /** Existing financial products (life cover, RA, TFSA, unit trusts, etc.) */
-  existing_products?: string[];
-  /** Approximate total investable assets (rough figure) */
-  estimated_investable_assets?: number;
-  /** Approximate monthly income (rough figure) */
-  estimated_monthly_income?: number;
-  /** Approximate monthly expenses (rough figure) */
-  estimated_monthly_expenses?: number;
-  /** Key concerns about money or financial planning */
   key_concerns?: string[];
-  /** Preferred communication method (email, phone, in-person, WhatsApp) */
+
+  // ── Personal Details ──
+  date_of_birth?: string;
+  id_number?: string;
+  marital_status?: string;
+  spouse_name?: string;
+  spouse_id_number?: string;
+  spouse_dob?: string;
+  life_stage?: string;
+  family_situation?: string;
+  number_of_dependents?: number;
+  dependents_details?: DependentDetail[];
+
+  // ── Employment & Tax ──
+  employment_status?: string;
+  occupation?: string;
+  employer?: string;
+  industry?: string;
+  years_employed?: number;
+  tax_number?: string;
+  tax_residency?: string;
+  retirement_age_target?: number;
+
+  // ── Health & Lifestyle ──
+  smoker?: boolean;
+  health_status?: string;
+  health_conditions?: string;
+
+  // ── Existing Advisor & Products ──
+  has_existing_advisor?: boolean;
+  current_advisor?: string;
+  existing_products?: string[];
+
+  // ── Financial Snapshot ──
+  estimated_investable_assets?: number;
+  estimated_monthly_income?: number;
+  estimated_monthly_expenses?: number;
+
+  // ── Communication & Notes ──
   preferred_communication?: string;
-  /** Meeting notes / free-form discovery notes */
   meeting_notes?: string;
-  /** Any custom fields */
   custom_fields?: Record<string, any>;
 }
 
 export interface AnalysisData {
-  /** Preliminary risk tolerance (conservative, moderate, aggressive) */
+  // ── Risk Profile ──
   risk_tolerance_preliminary?: string;
-  /** Monthly gross income */
+
+  // ── Income Breakdown ──
+  income_breakdown?: IncomeBreakdown;
   monthly_gross_income?: number;
-  /** Monthly net income */
   monthly_net_income?: number;
-  /** Monthly total expenses */
   monthly_total_expenses?: number;
-  /** Monthly surplus/deficit */
   monthly_surplus?: number;
-  /** Total assets (rough) */
+
+  // ── Expense Breakdown ──
+  expense_breakdown?: ExpenseBreakdown;
+
+  // ── Assets Breakdown ──
+  assets_details?: AssetDetail[];
   total_assets?: number;
-  /** Total liabilities (rough) */
+
+  // ── Liabilities Breakdown ──
+  liabilities_details?: LiabilityDetail[];
   total_liabilities?: number;
-  /** Net worth estimate */
   net_worth_estimate?: number;
-  /** Existing life cover amount */
+
+  // ── Existing Risk Cover ──
   existing_life_cover?: number;
-  /** Existing disability cover amount */
   existing_disability_cover?: number;
-  /** Existing dread disease cover */
   existing_dread_disease_cover?: number;
-  /** Has emergency fund? */
+  existing_income_protection?: number;
+  existing_funeral_cover?: number;
+  existing_medical_aid?: string;
+  medical_aid_plan?: string;
+  gap_cover?: boolean;
+
+  // ── Short-Term Insurance ──
+  has_short_term_insurance?: boolean;
+  short_term_provider?: string;
+  short_term_premiums?: number;
+  homeowners_cover?: boolean;
+  vehicle_cover?: boolean;
+  all_risks_cover?: boolean;
+
+  // ── Emergency Fund ──
   has_emergency_fund?: boolean;
-  /** Emergency fund months of expenses covered */
   emergency_fund_months?: number;
-  /** Retirement fund total value */
+  emergency_fund_value?: number;
+
+  // ── Retirement ──
   retirement_fund_value?: number;
-  /** Monthly retirement contribution */
   retirement_monthly_contribution?: number;
-  /** Insurance gaps identified */
-  insurance_gaps?: string[];
-  /** Investment gaps identified */
-  investment_gaps?: string[];
-  /** Tax planning opportunities */
-  tax_opportunities?: string[];
-  /** Estate planning status: none, basic_will, comprehensive */
+  retirement_fund_type?: string; // RA, pension, provident, preservation
+  ra_value?: number;
+  pension_value?: number;
+  provident_value?: number;
+  preservation_value?: number;
+  employer_contribution?: number;
+
+  // ── Estate Planning ──
   estate_planning_status?: string;
-  /** Key recommendations summary (pre-proposal notes) */
+  has_will?: boolean;
+  will_last_updated?: string;
+  executor_appointed?: string;
+  has_trust?: boolean;
+  trust_details?: string;
+  beneficiary_nominations_up_to_date?: boolean;
+
+  // ── Education Planning ──
+  education_needs?: EducationNeed[];
+  total_education_shortfall?: number;
+
+  // ── Business Interests ──
+  has_business_interests?: boolean;
+  business_name?: string;
+  business_type?: string;
+  business_value?: number;
+  has_buy_sell_agreement?: boolean;
+  has_key_person_cover?: boolean;
+
+  // ── Gap Analysis & Recommendations ──
+  insurance_gaps?: string[];
+  investment_gaps?: string[];
+  tax_opportunities?: string[];
   preliminary_recommendations?: string[];
-  /** Analysis meeting notes */
   analysis_notes?: string;
-  /** Any custom fields */
   custom_fields?: Record<string, any>;
 }
 
@@ -1237,7 +1349,10 @@ export const STAGE_GUIDANCE: Record<LeadStage, StageGuidance> = {
     recommended_actions: [
       { key: 'goals', label: 'Capture financial goals', data_fields: ['discovery_data.goals_overview'], required: true },
       { key: 'pain_points', label: 'Identify pain points and concerns', data_fields: ['discovery_data.pain_points', 'discovery_data.key_concerns'], required: true },
-      { key: 'family', label: 'Record family & dependent information', data_fields: ['discovery_data.family_situation', 'discovery_data.number_of_dependents'], required: true },
+      { key: 'personal_details', label: 'Record personal details (DOB, ID, marital status)', data_fields: ['discovery_data.date_of_birth', 'discovery_data.id_number', 'discovery_data.marital_status'], required: true },
+      { key: 'family', label: 'Record family & dependent information', data_fields: ['discovery_data.family_situation', 'discovery_data.number_of_dependents', 'discovery_data.dependents_details'], required: true },
+      { key: 'employment', label: 'Capture employment & tax details', data_fields: ['discovery_data.employment_status', 'discovery_data.occupation', 'discovery_data.employer'], required: true },
+      { key: 'health', label: 'Record health & lifestyle information', data_fields: ['discovery_data.smoker', 'discovery_data.health_status'], required: false },
       { key: 'existing_products', label: 'Document existing financial products', data_fields: ['discovery_data.existing_products'], required: true },
       { key: 'income_expenses', label: 'Get rough income & expense picture', data_fields: ['discovery_data.estimated_monthly_income', 'discovery_data.estimated_monthly_expenses'], required: false },
       { key: 'assets_estimate', label: 'Estimate investable assets', data_fields: ['discovery_data.estimated_investable_assets'], required: false },
@@ -1262,11 +1377,12 @@ export const STAGE_GUIDANCE: Record<LeadStage, StageGuidance> = {
     objective: 'Complete the Financial Needs Analysis (FNA) and identify insurance, investment, and planning gaps.',
     recommended_actions: [
       { key: 'risk_profile', label: 'Assess risk tolerance', data_fields: ['analysis_data.risk_tolerance_preliminary'], required: true },
-      { key: 'income_analysis', label: 'Analyse income & expenses', data_fields: ['analysis_data.monthly_gross_income', 'analysis_data.monthly_total_expenses', 'analysis_data.monthly_surplus'], required: true },
-      { key: 'net_worth', label: 'Calculate net worth estimate', data_fields: ['analysis_data.total_assets', 'analysis_data.total_liabilities', 'analysis_data.net_worth_estimate'], required: true },
+      { key: 'income_analysis', label: 'Analyse income & expenses in detail', data_fields: ['analysis_data.income_breakdown', 'analysis_data.expense_breakdown', 'analysis_data.monthly_surplus'], required: true },
+      { key: 'net_worth', label: 'Calculate detailed net worth', data_fields: ['analysis_data.assets_details', 'analysis_data.liabilities_details', 'analysis_data.net_worth_estimate'], required: true },
       { key: 'insurance_gaps', label: 'Identify insurance gaps', data_fields: ['analysis_data.insurance_gaps', 'analysis_data.existing_life_cover', 'analysis_data.existing_disability_cover'], required: true },
       { key: 'investment_gaps', label: 'Identify investment & savings gaps', data_fields: ['analysis_data.investment_gaps', 'analysis_data.retirement_fund_value'], required: true },
       { key: 'emergency_fund', label: 'Assess emergency fund status', data_fields: ['analysis_data.has_emergency_fund', 'analysis_data.emergency_fund_months'], required: false },
+      { key: 'estate_planning', label: 'Review estate planning', data_fields: ['analysis_data.has_will', 'analysis_data.estate_planning_status'], required: false },
       { key: 'recommendations', label: 'Draft preliminary recommendations', data_fields: ['analysis_data.preliminary_recommendations'], required: true },
       { key: 'analysis_notes', label: 'Complete analysis notes', data_fields: ['analysis_data.analysis_notes'], required: false },
     ],
