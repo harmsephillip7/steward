@@ -45,6 +45,7 @@ import { IncomeExpense } from './modules/clients/entities/income-expense.entity'
 // Entities — CRM
 import { Lead, Activity, Task } from './modules/crm/entities/crm.entities';
 import { Proposal } from './modules/crm/entities/proposal.entity';
+import { ProposalTemplate } from './modules/crm/entities/proposal-template.entity';
 import { OnboardingChecklist } from './modules/crm/entities/onboarding-checklist.entity';
 import { CrmModule } from './modules/crm/crm.module';
 
@@ -97,7 +98,7 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
           Dependent, ClientAsset, Liability, InsurancePolicy,
           FinancialGoal, LifeEvent, IncomeExpense,
           // CRM entities
-          Lead, Activity, Task, Proposal, OnboardingChecklist,
+          Lead, Activity, Task, Proposal, ProposalTemplate, OnboardingChecklist,
           // Documents
           Document,
           // Advisory
