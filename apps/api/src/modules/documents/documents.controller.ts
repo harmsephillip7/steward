@@ -14,19 +14,30 @@ const uploadDir = join(process.cwd(), 'uploads');
 if (!existsSync(uploadDir)) mkdirSync(uploadDir, { recursive: true });
 
 @ApiTags('documents')
-@ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
 @Controller('documents')
 export class DocumentsController {
   constructor(private readonly docs: DocumentsService) {}
 
+  @Get('files/:filename')
+  serveFile(@Param('filename') filename: string, @Res() res: Response) {
+    const safe = filename.replace(/[^a-zA-Z0-9._-]/g, '');
+    const filePath = join(uploadDir, safe);
+    if (!existsSync(filePath)) {
+      return res.status(404).json({ message: 'File not found' });
+    }
+    return res.sendFile(filePath);
+  }
+
   @Post()
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   create(@Request() req: any, @Body() dto: CreateDocumentDto) {
     return this.docs.create(req.user.id, dto);
   }
 
   @Post('upload')
-  @UseInterceptors(FileInterceptor('file', {
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)  @UseInterceptors(FileInterceptor('file', {
     storage: diskStorage({
       destination: uploadDir,
       filename: (_req, file, cb) => {
@@ -56,37 +67,37 @@ export class DocumentsController {
     return this.docs.create(req.user.id, dto);
   }
 
-  @Get('files/:filename')
-  serveFile(@Param('filename') filename: string, @Res() res: Response) {
-    const safe = filename.replace(/[^a-zA-Z0-9._-]/g, '');
-    const filePath = join(uploadDir, safe);
-    if (!existsSync(filePath)) {
-      return res.status(404).json({ message: 'File not found' });
-    }
-    return res.sendFile(filePath);
-  }
-
   @Get()
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   findAll(@Request() req: any, @Query('client_id') clientId?: string, @Query('type') type?: string) {
     return this.docs.findAll(req.user.id, clientId, type);
   }
 
   @Get('stats')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   getStats(@Request() req: any) {
     return this.docs.getStats(req.user.id);
   }
 
   @Get(':id')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   findOne(@Request() req: any, @Param('id') id: string) {
     return this.docs.findOne(id, req.user.id);
   }
 
   @Patch(':id')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   update(@Request() req: any, @Param('id') id: string, @Body() dto: UpdateDocumentDto) {
     return this.docs.update(id, req.user.id, dto);
   }
 
   @Delete(':id')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   remove(@Request() req: any, @Param('id') id: string) {
     return this.docs.remove(id, req.user.id);
   }
