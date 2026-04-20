@@ -12,9 +12,16 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Settings, Building2, User, DollarSign, Database, Plus, Trash2, Download, Upload } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
+import { Settings, Building2, User, DollarSign, Database, Plus, Trash2, Download, Upload, FileText, ImageIcon, Star, Pencil } from 'lucide-react';
 import { EmptyState } from '@/components/ui/empty-state';
 import { exportToCsv } from '@/lib/format';
+import { useProposalTemplates, useCreateProposalTemplate, useDeleteProposalTemplate, useUploadLogo } from '@/lib/hooks/use-crm';
+import { ProductType, PRODUCT_TYPE_LABELS, DEFAULT_PROPOSAL_SECTIONS, DEFAULT_DISCLAIMER_TEXT } from '@steward/shared';
+import type { ProposalSection, ProposalTemplateType } from '@steward/shared';
 
 interface AdvisorProfile {
   id: string;
@@ -69,6 +76,8 @@ export default function SettingsPage() {
     onError: () => toast.error('Failed to save settings'),
   });
 
+  const logoUpload = useUploadLogo();
+
   // Fee schedule state (local until backend is built)
   const [fees, setFees] = useState<FeeEntry[]>([
     { id: '1', label: 'Initial Advisory Fee', type: 'percentage', value: 1.0, applies_to: 'new_business' },
@@ -111,6 +120,7 @@ export default function SettingsPage() {
       <Tabs defaultValue="profile" className="space-y-4">
         <TabsList>
           <TabsTrigger value="profile">Profile & Branding</TabsTrigger>
+          <TabsTrigger value="proposals">Proposals</TabsTrigger>
           <TabsTrigger value="fees">Fee Schedule</TabsTrigger>
           <TabsTrigger value="data">Data Management</TabsTrigger>
         </TabsList>
@@ -168,6 +178,45 @@ export default function SettingsPage() {
                 </div>
                 <Separator />
                 <div className="space-y-1.5">
+                  <Label>Firm Logo</Label>
+                  <p className="text-xs text-muted-foreground">Used on proposals, reports and quotes sent to clients. Does not change the Steward app brand.</p>
+                  <div className="flex items-center gap-4 mt-2">
+                    {advisor?.logo_url ? (
+                      <img
+                        src={`${process.env.NEXT_PUBLIC_API_URL || ''}${advisor.logo_url}`}
+                        alt="Firm logo"
+                        className="h-16 w-auto max-w-[200px] rounded border object-contain bg-white p-1"
+                      />
+                    ) : (
+                      <div className="h-16 w-32 rounded border border-dashed flex items-center justify-center text-muted-foreground">
+                        <ImageIcon className="h-6 w-6" />
+                      </div>
+                    )}
+                    <div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const input = document.createElement('input');
+                          input.type = 'file';
+                          input.accept = 'image/png,image/jpeg,image/svg+xml,image/webp';
+                          input.onchange = (e) => {
+                            const file = (e.target as HTMLInputElement).files?.[0];
+                            if (file) logoUpload.mutate(file);
+                          };
+                          input.click();
+                        }}
+                        disabled={logoUpload.isPending}
+                      >
+                        <Upload className="h-4 w-4 mr-1" />
+                        {logoUpload.isPending ? 'Uploading…' : advisor?.logo_url ? 'Change Logo' : 'Upload Logo'}
+                      </Button>
+                      <p className="text-xs text-muted-foreground mt-1">PNG, JPG, SVG or WebP (max 5MB)</p>
+                    </div>
+                  </div>
+                </div>
+                <Separator />
+                <div className="space-y-1.5">
                   <Label htmlFor="brand_colour">Brand Colour</Label>
                   <div className="flex items-center gap-3">
                     <input
@@ -195,6 +244,9 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
         </TabsContent>
+
+        {/* Proposals Tab */}
+        <ProposalsSettingsTab />
 
         {/* Fee Schedule Tab */}
         <TabsContent value="fees" className="space-y-4">
@@ -373,6 +425,240 @@ export default function SettingsPage() {
         </TabsContent>
       </Tabs>
     </div>
+  );
+}
+
+// ── Proposals Settings Tab ─────────────────────────────────────
+
+const ALL_SECTIONS: { key: ProposalSection; label: string }[] = [
+  { key: 'cover_letter', label: 'Cover Letter' },
+  { key: 'executive_summary', label: 'Executive Summary' },
+  { key: 'client_overview', label: 'Client Overview' },
+  { key: 'products', label: 'Product Details' },
+  { key: 'fee_disclosure', label: 'Fee Disclosure' },
+  { key: 'disclaimers', label: 'Disclaimers' },
+  { key: 'next_steps', label: 'Next Steps' },
+];
+
+function ProposalsSettingsTab() {
+  const { data: templates = [], isLoading } = useProposalTemplates();
+  const createTemplate = useCreateProposalTemplate();
+  const deleteTemplate = useDeleteProposalTemplate();
+  const [open, setOpen] = useState(false);
+  const [editingTemplate, setEditingTemplate] = useState<ProposalTemplateType | null>(null);
+  const [form, setForm] = useState({
+    name: '',
+    product_types: [] as string[],
+    cover_letter_template: 'Dear {{client_name}},\n\nThank you for the opportunity to assist you with your financial planning needs. Based on our discussions, I have prepared the following proposal for your consideration.\n\nKind regards,\n{{advisor_name}}\n{{firm_name}}',
+    disclaimer_text: DEFAULT_DISCLAIMER_TEXT,
+    sections_enabled: [...DEFAULT_PROPOSAL_SECTIONS] as string[],
+    default_terms: '',
+    is_default: false,
+  });
+
+  const resetForm = () => {
+    setForm({
+      name: '',
+      product_types: [],
+      cover_letter_template: 'Dear {{client_name}},\n\nThank you for the opportunity to assist you with your financial planning needs. Based on our discussions, I have prepared the following proposal for your consideration.\n\nKind regards,\n{{advisor_name}}\n{{firm_name}}',
+      disclaimer_text: DEFAULT_DISCLAIMER_TEXT,
+      sections_enabled: [...DEFAULT_PROPOSAL_SECTIONS],
+      default_terms: '',
+      is_default: false,
+    });
+    setEditingTemplate(null);
+  };
+
+  const openEdit = (t: ProposalTemplateType) => {
+    setEditingTemplate(t);
+    setForm({
+      name: t.name,
+      product_types: t.product_types || [],
+      cover_letter_template: t.cover_letter_template || '',
+      disclaimer_text: t.disclaimer_text || DEFAULT_DISCLAIMER_TEXT,
+      sections_enabled: t.sections_enabled || [...DEFAULT_PROPOSAL_SECTIONS],
+      default_terms: t.default_terms || '',
+      is_default: t.is_default,
+    });
+    setOpen(true);
+  };
+
+  const handleSave = async () => {
+    if (editingTemplate) {
+      await api.patch(`/proposal-templates/${editingTemplate.id}`, form);
+      toast.success('Template updated');
+    } else {
+      createTemplate.mutate(form as any);
+    }
+    setOpen(false);
+    resetForm();
+  };
+
+  const toggleProductType = (pt: string) => {
+    setForm(f => ({
+      ...f,
+      product_types: f.product_types.includes(pt)
+        ? f.product_types.filter(p => p !== pt)
+        : [...f.product_types, pt],
+    }));
+  };
+
+  const toggleSection = (s: string) => {
+    setForm(f => ({
+      ...f,
+      sections_enabled: f.sections_enabled.includes(s)
+        ? f.sections_enabled.filter(x => x !== s)
+        : [...f.sections_enabled, s],
+    }));
+  };
+
+  return (
+    <TabsContent value="proposals" className="space-y-4">
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between pb-3">
+          <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+            <FileText className="h-4 w-4" />
+            Proposal Templates
+          </CardTitle>
+          <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) resetForm(); }}>
+            <DialogTrigger asChild>
+              <Button size="sm"><Plus className="h-4 w-4 mr-1" />New Template</Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>{editingTemplate ? 'Edit Template' : 'Create Proposal Template'}</DialogTitle>
+              </DialogHeader>
+              <div className="grid gap-4 py-2">
+                <div className="space-y-1.5">
+                  <Label>Template Name *</Label>
+                  <Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="e.g. Comprehensive Life & Investment" />
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label>Product Types</Label>
+                  <p className="text-xs text-muted-foreground">Select which product types this template covers</p>
+                  <div className="flex flex-wrap gap-1.5 mt-1">
+                    {Object.entries(PRODUCT_TYPE_LABELS).map(([key, label]) => (
+                      <Badge
+                        key={key}
+                        variant={form.product_types.includes(key) ? 'default' : 'outline'}
+                        className="cursor-pointer select-none"
+                        onClick={() => toggleProductType(key)}
+                      >
+                        {label}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label>Sections Included</Label>
+                  <div className="flex flex-wrap gap-1.5 mt-1">
+                    {ALL_SECTIONS.map(s => (
+                      <Badge
+                        key={s.key}
+                        variant={form.sections_enabled.includes(s.key) ? 'default' : 'outline'}
+                        className="cursor-pointer select-none"
+                        onClick={() => toggleSection(s.key)}
+                      >
+                        {s.label}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label>Cover Letter Template</Label>
+                  <p className="text-xs text-muted-foreground">
+                    Merge fields: {'{{client_name}}'}, {'{{advisor_name}}'}, {'{{firm_name}}'}, {'{{date}}'}
+                  </p>
+                  <Textarea
+                    rows={6}
+                    value={form.cover_letter_template}
+                    onChange={e => setForm(f => ({ ...f, cover_letter_template: e.target.value }))}
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label>Disclaimer Text</Label>
+                  <Textarea
+                    rows={4}
+                    value={form.disclaimer_text}
+                    onChange={e => setForm(f => ({ ...f, disclaimer_text: e.target.value }))}
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label>Default Terms & Conditions</Label>
+                  <Textarea
+                    rows={3}
+                    value={form.default_terms}
+                    onChange={e => setForm(f => ({ ...f, default_terms: e.target.value }))}
+                    placeholder="Any standard terms to include in proposals using this template..."
+                  />
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Switch
+                    checked={form.is_default}
+                    onCheckedChange={(v: boolean) => setForm(f => ({ ...f, is_default: v }))}
+                  />
+                  <Label>Set as default template</Label>
+                </div>
+
+                <Button onClick={handleSave} disabled={!form.name || createTemplate.isPending}>
+                  {editingTemplate ? 'Save Changes' : 'Create Template'}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </CardHeader>
+        <CardContent>
+          <p className="text-xs text-muted-foreground mb-4">
+            Configure reusable proposal templates with pre-set product types, cover letters, and disclaimers.
+          </p>
+          {isLoading ? (
+            <div className="space-y-2">
+              <Skeleton className="h-16 w-full" />
+              <Skeleton className="h-16 w-full" />
+            </div>
+          ) : templates.length === 0 ? (
+            <EmptyState icon={FileText} title="No templates yet" description="Create your first proposal template to streamline proposal creation." />
+          ) : (
+            <div className="space-y-2">
+              {templates.map(t => (
+                <div key={t.id} className="flex items-center justify-between p-3 rounded-lg border bg-muted/30">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-medium">{t.name}</p>
+                      {t.is_default && <Badge variant="secondary" className="text-xs"><Star className="h-3 w-3 mr-0.5" />Default</Badge>}
+                    </div>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {(t.product_types || []).slice(0, 5).map(pt => (
+                        <Badge key={pt} variant="outline" className="text-xs">
+                          {PRODUCT_TYPE_LABELS[pt as ProductType] || pt}
+                        </Badge>
+                      ))}
+                      {(t.product_types || []).length > 5 && (
+                        <Badge variant="outline" className="text-xs">+{t.product_types.length - 5} more</Badge>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex gap-1 ml-2">
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(t)}>
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => deleteTemplate.mutate(t.id)}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </TabsContent>
   );
 }
 

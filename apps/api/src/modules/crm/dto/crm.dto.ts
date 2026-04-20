@@ -59,8 +59,10 @@ export class CreateTaskDto {
 export class CreateProposalDto {
   @ApiProperty({ required: false }) @IsOptional() @IsString() lead_id?: string;
   @ApiProperty({ required: false }) @IsOptional() @IsString() client_id?: string;
+  @ApiProperty({ required: false }) @IsOptional() @IsString() template_id?: string;
   @ApiProperty() @IsString() title: string;
   @ApiProperty({ required: false }) @IsOptional() @IsArray() products?: Record<string, any>[];
+  @ApiProperty({ required: false }) @IsOptional() @IsString() cover_letter?: string;
   @ApiProperty({ required: false }) @IsOptional() @IsNumber() total_monthly_premium?: number;
   @ApiProperty({ required: false }) @IsOptional() @IsNumber() total_lump_sum?: number;
   @ApiProperty({ required: false }) @IsOptional() @IsDateString() valid_until?: string;
@@ -70,9 +72,33 @@ export class CreateProposalDto {
 export class UpdateProposalDto {
   @ApiProperty({ required: false }) @IsOptional() @IsString() title?: string;
   @ApiProperty({ required: false }) @IsOptional() @IsEnum(ProposalStatus) status?: ProposalStatus;
+  @ApiProperty({ required: false }) @IsOptional() @IsString() template_id?: string;
   @ApiProperty({ required: false }) @IsOptional() @IsArray() products?: Record<string, any>[];
+  @ApiProperty({ required: false }) @IsOptional() @IsString() cover_letter?: string;
   @ApiProperty({ required: false }) @IsOptional() @IsNumber() total_monthly_premium?: number;
   @ApiProperty({ required: false }) @IsOptional() @IsNumber() total_lump_sum?: number;
   @ApiProperty({ required: false }) @IsOptional() @IsDateString() valid_until?: string;
   @ApiProperty({ required: false }) @IsOptional() @IsString() notes?: string;
+}
+
+// ── Proposal Templates ────────────────────────────────────────
+
+export class CreateProposalTemplateDto {
+  @ApiProperty() @IsString() name: string;
+  @ApiProperty({ required: false }) @IsOptional() @IsArray() product_types?: string[];
+  @ApiProperty({ required: false }) @IsOptional() @IsString() cover_letter_template?: string;
+  @ApiProperty({ required: false }) @IsOptional() @IsString() disclaimer_text?: string;
+  @ApiProperty({ required: false }) @IsOptional() @IsArray() sections_enabled?: string[];
+  @ApiProperty({ required: false }) @IsOptional() @IsString() default_terms?: string;
+  @ApiProperty({ required: false }) @IsOptional() @IsBoolean() is_default?: boolean;
+}
+
+export class UpdateProposalTemplateDto {
+  @ApiProperty({ required: false }) @IsOptional() @IsString() name?: string;
+  @ApiProperty({ required: false }) @IsOptional() @IsArray() product_types?: string[];
+  @ApiProperty({ required: false }) @IsOptional() @IsString() cover_letter_template?: string;
+  @ApiProperty({ required: false }) @IsOptional() @IsString() disclaimer_text?: string;
+  @ApiProperty({ required: false }) @IsOptional() @IsArray() sections_enabled?: string[];
+  @ApiProperty({ required: false }) @IsOptional() @IsString() default_terms?: string;
+  @ApiProperty({ required: false }) @IsOptional() @IsBoolean() is_default?: boolean;
 }

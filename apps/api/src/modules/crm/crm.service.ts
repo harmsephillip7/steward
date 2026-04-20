@@ -3,13 +3,18 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Lead, Activity, Task } from './entities/crm.entities';
 import { Proposal } from './entities/proposal.entity';
+import { ProposalTemplate } from './entities/proposal-template.entity';
 import { OnboardingChecklist } from './entities/onboarding-checklist.entity';
 import { Client } from '../clients/entities/client.entity';
 import { Dependent } from '../clients/entities/dependent.entity';
 import { IncomeExpense } from '../clients/entities/income-expense.entity';
 import { ClientAsset } from '../clients/entities/client-asset.entity';
 import { Liability } from '../clients/entities/liability.entity';
-import { CreateLeadDto, UpdateLeadDto, CreateActivityDto, CreateTaskDto, CreateProposalDto, UpdateProposalDto } from './dto/crm.dto';
+import {
+  CreateLeadDto, UpdateLeadDto, CreateActivityDto, CreateTaskDto,
+  CreateProposalDto, UpdateProposalDto,
+  CreateProposalTemplateDto, UpdateProposalTemplateDto,
+} from './dto/crm.dto';
 import { AuditService } from '../audit/audit.service';
 import { LeadStage, OnboardingStatus, ProposalStatus, STAGE_GUIDANCE, computeStageProgress, IncomeExpenseType, Frequency } from '@steward/shared';
 import type { StageHistoryEntry } from '@steward/shared';
@@ -36,6 +41,7 @@ export class CrmService {
     @InjectRepository(Activity) private readonly activityRepo: Repository<Activity>,
     @InjectRepository(Task) private readonly taskRepo: Repository<Task>,
     @InjectRepository(Proposal) private readonly proposalRepo: Repository<Proposal>,
+    @InjectRepository(ProposalTemplate) private readonly proposalTemplateRepo: Repository<ProposalTemplate>,
     @InjectRepository(OnboardingChecklist) private readonly onboardingRepo: Repository<OnboardingChecklist>,
     @InjectRepository(Client) private readonly clientRepo: Repository<Client>,
     @InjectRepository(Dependent) private readonly dependentRepo: Repository<Dependent>,
@@ -445,15 +451,24 @@ export class CrmService {
   // ── Proposals ────────────────────────────────────────────────────
 
   async createProposal(advisorId: string, dto: CreateProposalDto) {
-    return this.proposalRepo.save(this.proposalRepo.create({ ...dto, advisor_id: advisorId }));
+    const proposal = this.proposalRepo.create({ ...dto, advisor_id: advisorId });
+    const saved = await this.proposalRepo.save(proposal);
+    return this.findOneProposal(saved.id, advisorId);
   }
 
   findAllProposals(advisorId: string) {
-    return this.proposalRepo.find({ where: { advisor_id: advisorId }, order: { created_at: 'DESC' } });
+    return this.proposalRepo.find({
+      where: { advisor_id: advisorId },
+      relations: ['lead', 'client', 'advisor'],
+      order: { created_at: 'DESC' },
+    });
   }
 
   async findOneProposal(id: string, advisorId: string) {
-    const p = await this.proposalRepo.findOne({ where: { id, advisor_id: advisorId } });
+    const p = await this.proposalRepo.findOne({
+      where: { id, advisor_id: advisorId },
+      relations: ['lead', 'client', 'advisor', 'template'],
+    });
     if (!p) throw new NotFoundException('Proposal not found');
     return p;
   }
@@ -461,12 +476,46 @@ export class CrmService {
   async updateProposal(id: string, advisorId: string, dto: UpdateProposalDto) {
     const p = await this.findOneProposal(id, advisorId);
     Object.assign(p, dto);
-    return this.proposalRepo.save(p);
+    await this.proposalRepo.save(p);
+    return this.findOneProposal(id, advisorId);
   }
 
   async sendProposal(id: string, advisorId: string) {
     await this.proposalRepo.update({ id, advisor_id: advisorId }, { status: ProposalStatus.SENT, sent_at: new Date() });
-    return this.proposalRepo.findOneBy({ id });
+    return this.findOneProposal(id, advisorId);
+  }
+
+  // ── Proposal Templates ──────────────────────────────────────────
+
+  async createProposalTemplate(advisorId: string, dto: CreateProposalTemplateDto) {
+    if (dto.is_default) {
+      await this.proposalTemplateRepo.update({ advisor_id: advisorId, is_default: true }, { is_default: false });
+    }
+    return this.proposalTemplateRepo.save(this.proposalTemplateRepo.create({ ...dto, advisor_id: advisorId }));
+  }
+
+  findAllProposalTemplates(advisorId: string) {
+    return this.proposalTemplateRepo.find({ where: { advisor_id: advisorId }, order: { is_default: 'DESC', name: 'ASC' } });
+  }
+
+  async findOneProposalTemplate(id: string, advisorId: string) {
+    const t = await this.proposalTemplateRepo.findOne({ where: { id, advisor_id: advisorId } });
+    if (!t) throw new NotFoundException('Proposal template not found');
+    return t;
+  }
+
+  async updateProposalTemplate(id: string, advisorId: string, dto: UpdateProposalTemplateDto) {
+    const t = await this.findOneProposalTemplate(id, advisorId);
+    if (dto.is_default) {
+      await this.proposalTemplateRepo.update({ advisor_id: advisorId, is_default: true }, { is_default: false });
+    }
+    Object.assign(t, dto);
+    return this.proposalTemplateRepo.save(t);
+  }
+
+  async deleteProposalTemplate(id: string, advisorId: string) {
+    await this.findOneProposalTemplate(id, advisorId);
+    await this.proposalTemplateRepo.delete({ id, advisor_id: advisorId });
   }
 
   // ── Onboarding ───────────────────────────────────────────────────

@@ -6,6 +6,7 @@ import type {
   ActivityRecord,
   TaskType,
   ProposalType,
+  ProposalTemplateType,
   OnboardingChecklistType,
   PipelineSummary,
   DiscoveryData,
@@ -23,6 +24,8 @@ export const crmKeys = {
   tasks: (completed?: boolean) => ['crm', 'tasks', { completed }] as const,
   proposals: ['crm', 'proposals'] as const,
   proposal: (id: string) => ['crm', 'proposals', id] as const,
+  proposalTemplates: ['crm', 'proposal-templates'] as const,
+  proposalTemplate: (id: string) => ['crm', 'proposal-templates', id] as const,
   onboarding: (clientId: string) => ['crm', 'onboarding', clientId] as const,
 };
 
@@ -336,6 +339,92 @@ export function useSendProposal(id: string) {
       qc.invalidateQueries({ queryKey: crmKeys.proposal(id) });
       toast.success('Proposal sent');
     },
+  });
+}
+
+// ── Proposal Templates ─────────────────────────────────────────
+
+export function useProposalTemplates() {
+  return useQuery({
+    queryKey: crmKeys.proposalTemplates,
+    queryFn: async () => {
+      const { data } = await api.get<ProposalTemplateType[]>('/proposal-templates');
+      return data;
+    },
+  });
+}
+
+export function useProposalTemplate(id: string) {
+  return useQuery({
+    queryKey: crmKeys.proposalTemplate(id),
+    queryFn: async () => {
+      const { data } = await api.get<ProposalTemplateType>(`/proposal-templates/${id}`);
+      return data;
+    },
+    enabled: !!id,
+  });
+}
+
+export function useCreateProposalTemplate() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (dto: Partial<ProposalTemplateType>) => {
+      const { data } = await api.post<ProposalTemplateType>('/proposal-templates', dto);
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: crmKeys.proposalTemplates });
+      toast.success('Template created');
+    },
+    onError: () => toast.error('Failed to create template'),
+  });
+}
+
+export function useUpdateProposalTemplate(id: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (dto: Partial<ProposalTemplateType>) => {
+      const { data } = await api.patch<ProposalTemplateType>(`/proposal-templates/${id}`, dto);
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: crmKeys.proposalTemplates });
+      toast.success('Template updated');
+    },
+  });
+}
+
+export function useDeleteProposalTemplate() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      await api.delete(`/proposal-templates/${id}`);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: crmKeys.proposalTemplates });
+      toast.success('Template deleted');
+    },
+  });
+}
+
+// ── Logo Upload ────────────────────────────────────────────────
+
+export function useUploadLogo() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (file: File) => {
+      const fd = new FormData();
+      fd.append('file', file);
+      const { data } = await api.post('/advisors/me/logo', fd, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['advisor', 'me'] });
+      toast.success('Logo uploaded');
+    },
+    onError: () => toast.error('Failed to upload logo'),
   });
 }
 

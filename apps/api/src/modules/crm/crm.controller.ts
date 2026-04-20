@@ -4,7 +4,11 @@ import {
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CrmService } from './crm.service';
-import { CreateLeadDto, UpdateLeadDto, CreateActivityDto, CreateTaskDto, CreateProposalDto, UpdateProposalDto } from './dto/crm.dto';
+import {
+  CreateLeadDto, UpdateLeadDto, CreateActivityDto, CreateTaskDto,
+  CreateProposalDto, UpdateProposalDto,
+  CreateProposalTemplateDto, UpdateProposalTemplateDto,
+} from './dto/crm.dto';
 
 @ApiTags('crm')
 @ApiBearerAuth()
@@ -115,6 +119,33 @@ export class CrmController {
   @Post('proposals/:id/send')
   sendProposal(@Request() req: any, @Param('id') id: string) {
     return this.crm.sendProposal(id, req.user.id);
+  }
+
+  // ── Proposal Templates ───────────────────────────────────────────
+
+  @Post('proposal-templates')
+  createTemplate(@Request() req: any, @Body() dto: CreateProposalTemplateDto) {
+    return this.crm.createProposalTemplate(req.user.id, dto);
+  }
+
+  @Get('proposal-templates')
+  findTemplates(@Request() req: any) {
+    return this.crm.findAllProposalTemplates(req.user.id);
+  }
+
+  @Get('proposal-templates/:id')
+  findOneTemplate(@Request() req: any, @Param('id') id: string) {
+    return this.crm.findOneProposalTemplate(id, req.user.id);
+  }
+
+  @Patch('proposal-templates/:id')
+  updateTemplate(@Request() req: any, @Param('id') id: string, @Body() dto: UpdateProposalTemplateDto) {
+    return this.crm.updateProposalTemplate(id, req.user.id, dto);
+  }
+
+  @Delete('proposal-templates/:id')
+  deleteTemplate(@Request() req: any, @Param('id') id: string) {
+    return this.crm.deleteProposalTemplate(id, req.user.id);
   }
 
   // ── Onboarding ───────────────────────────────────────────────────

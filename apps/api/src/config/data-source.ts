@@ -31,6 +31,7 @@ import { AuditLog } from '../modules/audit/entities/audit-log.entity';
 import { AdvisoryRecommendation } from '../modules/advisory/entities/advisory-recommendation.entity';
 import { Lead, Activity, Task } from '../modules/crm/entities/crm.entities';
 import { Proposal } from '../modules/crm/entities/proposal.entity';
+import { ProposalTemplate } from '../modules/crm/entities/proposal-template.entity';
 import { OnboardingChecklist } from '../modules/crm/entities/onboarding-checklist.entity';
 import { Document } from '../modules/documents/entities/document.entity';
 import { Notification } from '../modules/notifications/entities/notification.entity';
@@ -79,6 +80,7 @@ const AppDataSource = new DataSource({
     Activity,
     Task,
     Proposal,
+    ProposalTemplate,
     OnboardingChecklist,
     Document,
     Notification,

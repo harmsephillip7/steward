@@ -11,6 +11,7 @@ import { ProposalStatus } from '@steward/shared';
 import { Advisor } from '../../advisors/entities/advisor.entity';
 import { Client } from '../../clients/entities/client.entity';
 import { Lead } from './crm.entities';
+import { ProposalTemplate } from './proposal-template.entity';
 
 @Entity('proposals')
 export class Proposal {
@@ -38,6 +39,13 @@ export class Proposal {
   @JoinColumn({ name: 'client_id' })
   client: Client;
 
+  @Column({ nullable: true })
+  template_id: string;
+
+  @ManyToOne(() => ProposalTemplate, { nullable: true })
+  @JoinColumn({ name: 'template_id' })
+  template: ProposalTemplate;
+
   @Column()
   title: string;
 
@@ -46,6 +54,9 @@ export class Proposal {
 
   @Column({ type: 'jsonb', default: [] })
   products: Record<string, any>[];
+
+  @Column({ type: 'text', nullable: true })
+  cover_letter: string;
 
   @Column({ type: 'decimal', precision: 14, scale: 2, default: 0 })
   total_monthly_premium: number;

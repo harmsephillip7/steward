@@ -4,6 +4,7 @@ import { CrmController } from './crm.controller';
 import { CrmService } from './crm.service';
 import { Lead, Activity, Task } from './entities/crm.entities';
 import { Proposal } from './entities/proposal.entity';
+import { ProposalTemplate } from './entities/proposal-template.entity';
 import { OnboardingChecklist } from './entities/onboarding-checklist.entity';
 import { Client } from '../clients/entities/client.entity';
 import { Dependent } from '../clients/entities/dependent.entity';
@@ -14,7 +15,7 @@ import { AuditModule } from '../audit/audit.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Lead, Activity, Task, Proposal, OnboardingChecklist, Client, Dependent, IncomeExpense, ClientAsset, Liability]),
+    TypeOrmModule.forFeature([Lead, Activity, Task, Proposal, ProposalTemplate, OnboardingChecklist, Client, Dependent, IncomeExpense, ClientAsset, Liability]),
     AuditModule,
   ],
   controllers: [CrmController],

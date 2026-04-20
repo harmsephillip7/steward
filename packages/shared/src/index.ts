@@ -256,6 +256,8 @@ export enum ProductType {
   INCOME_PROTECTION = 'income_protection',
   FUNERAL = 'funeral',
   MEDICAL_AID = 'medical_aid',
+  GAP_COVER = 'gap_cover',
+  SHORT_TERM = 'short_term',
   RETIREMENT_ANNUITY = 'retirement_annuity',
   LIVING_ANNUITY = 'living_annuity',
   ENDOWMENT = 'endowment',
@@ -263,6 +265,116 @@ export enum ProductType {
   TFSA = 'tfsa',
   EDUCATION_POLICY = 'education_policy',
 }
+
+// ─── Proposal Product & Template Types ────────────────────────────────────────
+
+export type ProposalSection =
+  | 'cover_letter'
+  | 'executive_summary'
+  | 'client_overview'
+  | 'products'
+  | 'fee_disclosure'
+  | 'disclaimers'
+  | 'next_steps';
+
+export interface ProposalProduct {
+  id: string;
+  type: ProductType;
+  provider: string;
+  product_name: string;
+  // Risk fields
+  cover_amount?: number;
+  premium_monthly?: number;
+  lump_sum?: number;
+  term_years?: number;
+  escalation_rate?: number;
+  waiting_period?: string;
+  payment_pattern?: string;
+  // Investment fields
+  initial_contribution?: number;
+  monthly_contribution?: number;
+  fund_selection?: string[];
+  platform?: string;
+  // Medical Aid / Gap Cover
+  plan_name?: string;
+  dependents_covered?: number;
+  gap_cover_included?: boolean;
+  // Short-term
+  insured_item?: string;
+  sum_insured?: number;
+  excess?: number;
+  // Generic
+  notes?: string;
+}
+
+export interface ProposalTemplateType {
+  id: string;
+  advisor_id: string;
+  name: string;
+  product_types: ProductType[];
+  cover_letter_template: string;
+  disclaimer_text: string;
+  sections_enabled: ProposalSection[];
+  default_terms: string;
+  is_default: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export const PRODUCT_TYPE_LABELS: Record<ProductType, string> = {
+  [ProductType.LIFE]: 'Life Cover',
+  [ProductType.DISABILITY]: 'Disability Cover',
+  [ProductType.DREAD_DISEASE]: 'Dread Disease Cover',
+  [ProductType.INCOME_PROTECTION]: 'Income Protection',
+  [ProductType.FUNERAL]: 'Funeral Cover',
+  [ProductType.MEDICAL_AID]: 'Medical Aid',
+  [ProductType.GAP_COVER]: 'Gap Cover',
+  [ProductType.SHORT_TERM]: 'Short-Term Insurance',
+  [ProductType.RETIREMENT_ANNUITY]: 'Retirement Annuity',
+  [ProductType.LIVING_ANNUITY]: 'Living Annuity',
+  [ProductType.ENDOWMENT]: 'Endowment',
+  [ProductType.UNIT_TRUST]: 'Unit Trust',
+  [ProductType.TFSA]: 'Tax-Free Savings',
+  [ProductType.EDUCATION_POLICY]: 'Education Policy',
+};
+
+export const RISK_PRODUCT_TYPES: ProductType[] = [
+  ProductType.LIFE,
+  ProductType.DISABILITY,
+  ProductType.DREAD_DISEASE,
+  ProductType.INCOME_PROTECTION,
+  ProductType.FUNERAL,
+];
+
+export const INVESTMENT_PRODUCT_TYPES: ProductType[] = [
+  ProductType.RETIREMENT_ANNUITY,
+  ProductType.LIVING_ANNUITY,
+  ProductType.ENDOWMENT,
+  ProductType.UNIT_TRUST,
+  ProductType.TFSA,
+  ProductType.EDUCATION_POLICY,
+];
+
+export const MEDICAL_PRODUCT_TYPES: ProductType[] = [
+  ProductType.MEDICAL_AID,
+  ProductType.GAP_COVER,
+];
+
+export const SHORT_TERM_PRODUCT_TYPES: ProductType[] = [
+  ProductType.SHORT_TERM,
+];
+
+export const DEFAULT_PROPOSAL_SECTIONS: ProposalSection[] = [
+  'cover_letter',
+  'executive_summary',
+  'client_overview',
+  'products',
+  'fee_disclosure',
+  'disclaimers',
+  'next_steps',
+];
+
+export const DEFAULT_DISCLAIMER_TEXT = `This proposal is not a contract and does not bind either party. Product benefits, terms, and premiums are subject to the insurer's/provider's approval and underwriting requirements. Past performance is not indicative of future results. This proposal has been prepared in accordance with the Financial Advisory and Intermediary Services Act (FAIS), 2002. The advisor is an authorised financial services provider.`;
 
 export enum QuoteStatus {
   PENDING = 'pending',
@@ -845,9 +957,11 @@ export interface ProposalType {
   advisor_id: string;
   lead_id?: string;
   client_id?: string;
+  template_id?: string;
   title: string;
   status: ProposalStatus;
-  products?: any[];
+  products: ProposalProduct[];
+  cover_letter?: string;
   total_monthly_premium?: number;
   total_lump_sum?: number;
   valid_until?: string;
@@ -858,6 +972,16 @@ export interface ProposalType {
   signed_at?: string;
   created_at: string;
   updated_at: string;
+  // Joined from advisor for preview/PDF
+  advisor?: {
+    name: string;
+    firm_name: string;
+    fsp_number?: string;
+    logo_url?: string;
+    primary_colour_hex?: string;
+  };
+  lead?: { first_name: string; last_name: string; email?: string; phone?: string };
+  client?: { first_name: string; last_name: string; email?: string; phone?: string };
 }
 
 export interface OnboardingChecklistType {
