@@ -33,6 +33,9 @@ export class Portfolio {
   @Column({ default: 'ZAR' })
   currency: string;
 
+  @Column({ nullable: true })
+  mandate_type: string;
+
   @CreateDateColumn()
   created_at: Date;
 

@@ -1,4 +1,4 @@
-import { IsString, IsArray, ValidateNested, IsNumber, IsUUID, Min, Max } from 'class-validator';
+import { IsString, IsArray, IsOptional, ValidateNested, IsNumber, IsUUID, Min, Max } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 
@@ -26,9 +26,15 @@ export class CreatePortfolioDto {
   @IsString()
   name: string;
 
-  @ApiProperty({ type: [PortfolioFundDto] })
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  mandate_type?: string;
+
+  @ApiProperty({ type: [PortfolioFundDto], required: false })
+  @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => PortfolioFundDto)
-  funds: PortfolioFundDto[];
+  funds?: PortfolioFundDto[];
 }

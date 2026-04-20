@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useClient } from '@/lib/hooks/use-clients';
 import { useUpdateCompliance } from '@/lib/hooks/use-compliance';
+import { ClientDocuments } from '@/components/documents/client-documents';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -250,6 +251,9 @@ export default function ClientDetailPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Documents */}
+      <ClientDocuments clientId={client.id} />
 
       {/* Records of Advice */}
       <Card>

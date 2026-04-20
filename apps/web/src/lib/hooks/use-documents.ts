@@ -23,6 +23,17 @@ export function useDocuments(clientId?: string, type?: string) {
   });
 }
 
+export function useClientDocuments(clientId: string) {
+  return useQuery({
+    queryKey: docKeys.byClient(clientId),
+    queryFn: async () => {
+      const { data } = await api.get<DocumentRecord[]>(`/documents?client_id=${clientId}`);
+      return data;
+    },
+    enabled: !!clientId,
+  });
+}
+
 export function useDocumentStats() {
   return useQuery({
     queryKey: docKeys.stats,
@@ -58,9 +69,11 @@ export function useFileUpload() {
       });
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       qc.invalidateQueries({ queryKey: docKeys.all });
       qc.invalidateQueries({ queryKey: docKeys.stats });
+      const clientId = variables.get('client_id') as string | null;
+      if (clientId) qc.invalidateQueries({ queryKey: docKeys.byClient(clientId) });
       toast.success('File uploaded successfully');
     },
     onError: () => toast.error('Failed to upload file'),

@@ -45,7 +45,7 @@ const navGroups: NavGroup[] = [
   {
     label: 'Operations',
     items: [
-      { href: '/documents', label: 'Documents', icon: FolderOpen },
+      { href: '/documents', label: 'Document Vault', icon: FolderOpen },
       { href: '/compliance', label: 'Compliance', icon: Shield },
       { href: '/commissions', label: 'Commissions', icon: DollarSign },
       { href: '/reports', label: 'Reports', icon: BarChart3 },

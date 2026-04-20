@@ -20,19 +20,22 @@ export class PortfoliosService {
     const portfolio = this.portfolioRepo.create({
       client_id: dto.client_id,
       name: dto.name,
-      total_value: dto.funds.reduce((sum, f) => sum + (f.value ?? 0), 0),
+      mandate_type: dto.mandate_type,
+      total_value: (dto.funds ?? []).reduce((sum, f) => sum + (f.value ?? 0), 0),
     });
     const saved = await this.portfolioRepo.save(portfolio);
 
-    const portfolioFunds = dto.funds.map((f) =>
-      this.portfolioFundRepo.create({
-        portfolio_id: saved.id,
-        fund_id: f.fund_id,
-        allocation_pct: f.allocation_pct,
-        value: f.value,
-      }),
-    );
-    await this.portfolioFundRepo.save(portfolioFunds);
+    if (dto.funds?.length) {
+      const portfolioFunds = dto.funds.map((f) =>
+        this.portfolioFundRepo.create({
+          portfolio_id: saved.id,
+          fund_id: f.fund_id,
+          allocation_pct: f.allocation_pct,
+          value: f.value,
+        }),
+      );
+      await this.portfolioFundRepo.save(portfolioFunds);
+    }
 
     await this.auditService.log(advisorId, 'portfolio.created', 'portfolio', saved.id);
     return this.findOne(saved.id);

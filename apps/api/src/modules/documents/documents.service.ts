@@ -20,7 +20,10 @@ export class DocumentsService {
   }
 
   async findAll(advisorId: string, clientId?: string, type?: string) {
-    const qb = this.docRepo.createQueryBuilder('d').where('d.advisor_id = :advisorId', { advisorId });
+    const qb = this.docRepo.createQueryBuilder('d')
+      .leftJoin('d.client', 'client')
+      .addSelect(['client.id', 'client.first_name', 'client.last_name'])
+      .where('d.advisor_id = :advisorId', { advisorId });
     if (clientId) qb.andWhere('d.client_id = :clientId', { clientId });
     if (type) qb.andWhere('d.type = :type', { type });
     return qb.orderBy('d.created_at', 'DESC').getMany();
