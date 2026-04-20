@@ -616,7 +616,7 @@ function PreviewOverlay({
             <div>
               {advisor?.logo_url && (
                 <img
-                  src={`${process.env.NEXT_PUBLIC_API_URL || ''}${advisor.logo_url}`}
+                  src={advisor.logo_url.startsWith('data:') ? advisor.logo_url : `${process.env.NEXT_PUBLIC_API_URL || ''}${advisor.logo_url}`}
                   alt="Firm logo"
                   className="h-12 w-auto mb-2"
                 />

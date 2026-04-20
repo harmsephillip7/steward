@@ -3,29 +3,12 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { AdvisorsService } from './advisors.service';
-import { diskStorage } from 'multer';
-import { extname, join } from 'path';
-import { existsSync, mkdirSync } from 'fs';
-import { v4 as uuid } from 'uuid';
-
-const uploadDir = join(process.cwd(), 'uploads', 'logos');
-if (!existsSync(uploadDir)) mkdirSync(uploadDir, { recursive: true });
+import { readFileSync, unlinkSync } from 'fs';
 
 @ApiTags('advisors')
 @Controller('advisors')
 export class AdvisorsController {
   constructor(private readonly advisorsService: AdvisorsService) {}
-
-  @Get('logos/:filename')
-  @ApiOperation({ summary: 'Serve logo file (public)' })
-  serveLogo(@Param('filename') filename: string, @Res() res: any) {
-    const safe = filename.replace(/[^a-zA-Z0-9._-]/g, '');
-    const filePath = join(uploadDir, safe);
-    if (!existsSync(filePath)) {
-      return res.status(404).json({ message: 'Logo not found' });
-    }
-    return res.sendFile(filePath);
-  }
 
   @Get('me')
   @ApiBearerAuth()
@@ -46,15 +29,8 @@ export class AdvisorsController {
   @Post('me/logo')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
-  @ApiOperation({ summary: 'Upload firm logo for proposals/reports' })
+  @ApiOperation({ summary: 'Upload firm logo — stored as base64 data URI in DB' })
   @UseInterceptors(FileInterceptor('file', {
-    storage: diskStorage({
-      destination: uploadDir,
-      filename: (_req, file, cb) => {
-        const uniqueName = `${uuid()}${extname(file.originalname)}`;
-        cb(null, uniqueName);
-      },
-    }),
     limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
     fileFilter: (_req, file, cb) => {
       if (!file.mimetype.match(/^image\/(png|jpeg|jpg|gif|svg\+xml|webp)$/)) {
@@ -65,7 +41,9 @@ export class AdvisorsController {
     },
   }))
   async uploadLogo(@Request() req: any, @UploadedFile() file: Express.Multer.File) {
-    const logoUrl = `/advisors/logos/${file.filename}`;
-    return this.advisorsService.updateBranding(req.user.id, { logo_url: logoUrl });
+    // Convert to base64 data URI and store in DB (survives Railway ephemeral FS)
+    const base64 = file.buffer.toString('base64');
+    const dataUri = `data:${file.mimetype};base64,${base64}`;
+    return this.advisorsService.updateBranding(req.user.id, { logo_url: dataUri });
   }
 }

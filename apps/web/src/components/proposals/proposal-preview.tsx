@@ -83,7 +83,7 @@ export function ProposalPdfDocument({ data }: { data: ProposalPdfData }) {
   const styles = makeStyles(brandColour);
   const recipient = data.client || data.lead;
   const logoUrl = data.advisor?.logo_url
-    ? `${typeof window !== 'undefined' ? window.location.origin : ''}${process.env.NEXT_PUBLIC_API_URL || ''}${data.advisor.logo_url}`
+    ? (data.advisor.logo_url.startsWith('data:') ? data.advisor.logo_url : `${typeof window !== 'undefined' ? window.location.origin : ''}${process.env.NEXT_PUBLIC_API_URL || ''}${data.advisor.logo_url}`)
     : null;
 
   return (

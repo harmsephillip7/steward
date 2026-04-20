@@ -25,7 +25,7 @@ export class Advisor {
   @Column()
   firm_name: string;
 
-  @Column({ nullable: true })
+  @Column('text', { nullable: true })
   logo_url: string;
 
   @Column({ nullable: true })

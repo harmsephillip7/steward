@@ -183,7 +183,7 @@ export default function SettingsPage() {
                   <div className="flex items-center gap-4 mt-2">
                     {advisor?.logo_url ? (
                       <img
-                        src={`${process.env.NEXT_PUBLIC_API_URL || ''}${advisor.logo_url}`}
+                        src={advisor.logo_url.startsWith('data:') ? advisor.logo_url : `${process.env.NEXT_PUBLIC_API_URL || ''}${advisor.logo_url}`}
                         alt="Firm logo"
                         className="h-16 w-auto max-w-[200px] rounded border object-contain bg-white p-1"
                       />
