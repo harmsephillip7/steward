@@ -39,6 +39,9 @@ import { Commission } from '../modules/commissions/entities/commission.entity';
 import { Integration } from '../modules/commissions/entities/commission.entity';
 import { Firm, FirmMember, Team, TeamMember } from '../modules/firm/entities/firm.entity';
 import { ClientPortalUser } from '../modules/portal/entities/client-portal-user.entity';
+import { MessagingConnection } from '../modules/messaging/entities/messaging-connection.entity';
+import { Message } from '../modules/messaging/entities/message.entity';
+import { MessageTemplate } from '../modules/messaging/entities/message-template.entity';
 
 const databaseUrl = process.env.DATABASE_URL;
 
@@ -91,6 +94,9 @@ const AppDataSource = new DataSource({
     TeamMember,
     ClientPortalUser,
     Integration,
+    MessagingConnection,
+    Message,
+    MessageTemplate,
   ],
   migrations: ['dist/config/migrations/*.js'],
   synchronize: false,

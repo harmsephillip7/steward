@@ -77,6 +77,12 @@ import { Notification } from './modules/notifications/entities/notification.enti
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 
+// Entities — messaging integrations
+import { MessagingConnection } from './modules/messaging/entities/messaging-connection.entity';
+import { Message } from './modules/messaging/entities/message.entity';
+import { MessageTemplate } from './modules/messaging/entities/message-template.entity';
+import { MessagingModule } from './modules/messaging/messaging.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -113,6 +119,8 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
           Firm, FirmMember, Team, TeamMember,
           // Notifications
           Notification,
+          // Messaging integrations
+          MessagingConnection, Message, MessageTemplate,
         ],
         synchronize: config.get<string>('NODE_ENV') !== 'production',
         logging: false,
@@ -141,6 +149,7 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
     FirmModule,
     NotificationsModule,
     DashboardModule,
+    MessagingModule,
   ],
   controllers: [AppController],
   providers: [AppService],

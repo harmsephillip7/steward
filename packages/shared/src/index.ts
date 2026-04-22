@@ -204,6 +204,8 @@ export enum LeadSource {
   COLD_CALL = 'cold_call',
   SOCIAL_MEDIA = 'social_media',
   EXISTING_CLIENT = 'existing_client',
+  FACEBOOK = 'facebook',
+  WHATSAPP = 'whatsapp',
 }
 
 export enum LeadStage {
@@ -494,6 +496,96 @@ export enum RegulatoryReturnStatus {
   DRAFT = 'draft',
   SUBMITTED = 'submitted',
   ACCEPTED = 'accepted',
+}
+
+// ─── Messaging / Integrations ─────────────────────────────────────────────────
+
+export enum MessageChannel {
+  EMAIL = 'email',
+  MESSENGER = 'messenger',
+  WHATSAPP = 'whatsapp',
+}
+
+export enum MessagingProvider {
+  GMAIL = 'gmail',
+  MICROSOFT = 'microsoft',
+  SMTP = 'smtp',
+  META = 'meta',
+  TWILIO = 'twilio',
+  META_WHATSAPP = 'meta_whatsapp',
+}
+
+export enum MessagingConnectionStatus {
+  ACTIVE = 'active',
+  DISCONNECTED = 'disconnected',
+  ERROR = 'error',
+  PENDING = 'pending',
+}
+
+export enum MessageDirection {
+  INBOUND = 'inbound',
+  OUTBOUND = 'outbound',
+}
+
+export enum MessageTemplateStatus {
+  DRAFT = 'draft',
+  PENDING_APPROVAL = 'pending_approval',
+  APPROVED = 'approved',
+  REJECTED = 'rejected',
+}
+
+export enum MessageTemplateCategory {
+  UTILITY = 'utility',
+  MARKETING = 'marketing',
+  AUTHENTICATION = 'authentication',
+}
+
+export interface MessagingConnectionType {
+  id: string;
+  advisor_id: string;
+  channel: MessageChannel;
+  provider: MessagingProvider;
+  status: MessagingConnectionStatus;
+  display_name: string;
+  config: Record<string, unknown>;
+  last_synced_at: string | null;
+  created_at: string;
+}
+
+export interface MessageType {
+  id: string;
+  advisor_id: string;
+  connection_id: string;
+  direction: MessageDirection;
+  channel: MessageChannel;
+  lead_id: string | null;
+  client_id: string | null;
+  from_address: string;
+  to_address: string;
+  subject: string | null;
+  body: string;
+  thread_id: string | null;
+  external_message_id: string | null;
+  is_read: boolean;
+  sent_at: string;
+  created_at: string;
+}
+
+export interface MessageTemplateType {
+  id: string;
+  advisor_id: string;
+  name: string;
+  channel: MessageChannel;
+  template_name: string;
+  category: MessageTemplateCategory;
+  language: string;
+  body: string;
+  header_text: string | null;
+  footer_text: string | null;
+  status: MessageTemplateStatus;
+  external_template_id: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 export enum FirmRole {

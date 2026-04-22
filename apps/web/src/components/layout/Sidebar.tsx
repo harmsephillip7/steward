@@ -6,7 +6,7 @@ import { useState } from 'react';
 import {
   LayoutDashboard, Users, Briefcase, TrendingUp, FileText, Shield, BarChart3,
   Globe, Settings, Cross, Target, ClipboardList, Building2, FolderOpen,
-  Brain, DollarSign, ChevronDown, Menu,
+  Brain, DollarSign, ChevronDown, Menu, MessageSquare,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -30,6 +30,7 @@ const navGroups: NavGroup[] = [
       { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
       { href: '/crm', label: 'CRM', icon: Target },
       { href: '/clients', label: 'Clients', icon: Users },
+      { href: '/integrations', label: 'Integrations', icon: MessageSquare },
     ],
   },
   {
