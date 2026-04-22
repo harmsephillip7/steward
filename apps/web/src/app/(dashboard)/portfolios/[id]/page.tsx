@@ -44,9 +44,9 @@ interface PortfolioDetail {
   screening_results: any[];
 }
 
-function formatCurrency(value: string | number, currency = 'ZAR') {
+function formatCurrency(value: string | number) {
   const n = typeof value === 'string' ? parseFloat(value) : value;
-  return new Intl.NumberFormat('en-ZA', { style: 'currency', currency, maximumFractionDigits: 0 }).format(n || 0);
+  return `R\u00a0${(n || 0).toLocaleString('en-ZA', { maximumFractionDigits: 0 })}`;
 }
 
 export default function PortfolioDetailPage() {
@@ -112,7 +112,7 @@ export default function PortfolioDetailPage() {
         <div>
           <h1 className="text-2xl font-bold text-foreground">{portfolio.name}</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            {formatCurrency(portfolio.total_value, portfolio.currency)} &middot; {portfolio.portfolio_funds.length} funds
+            {formatCurrency(portfolio.total_value)} &middot; {portfolio.portfolio_funds.length} funds
           </p>
         </div>
         <Badge variant="secondary">{portfolio.currency}</Badge>
@@ -155,7 +155,7 @@ export default function PortfolioDetailPage() {
                     <TableCell className="text-muted-foreground">{pf.fund.ter ? `${Number(pf.fund.ter).toFixed(2)}%` : '—'}</TableCell>
                     <TableCell className="text-right font-medium">{Number(pf.allocation_pct).toFixed(1)}%</TableCell>
                     <TableCell className="text-right font-mono">
-                      {pf.value ? formatCurrency(pf.value, portfolio.currency) : '—'}
+                      {pf.value ? formatCurrency(pf.value) : '—'}
                     </TableCell>
                   </TableRow>
                 ))}

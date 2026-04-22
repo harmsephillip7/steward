@@ -12,11 +12,11 @@ export function relativeTime(date: string | Date): string {
   return format(d, 'dd MMM yyyy');
 }
 
-export function formatCurrency(amount: number | string | undefined, currency = 'ZAR'): string {
+export function formatCurrency(amount: number | string | undefined): string {
   if (amount === undefined || amount === null) return '—';
   const n = typeof amount === 'string' ? parseFloat(amount) : amount;
   if (isNaN(n)) return '—';
-  return new Intl.NumberFormat('en-ZA', { style: 'currency', currency, maximumFractionDigits: 0 }).format(n);
+  return `R\u00a0${n.toLocaleString('en-ZA', { maximumFractionDigits: 0 })}`;
 }
 
 export function formatBytes(bytes: number): string {

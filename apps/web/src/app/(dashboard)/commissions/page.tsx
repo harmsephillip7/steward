@@ -23,7 +23,7 @@ const SYNC_FREQUENCIES = ['manual', 'daily', 'weekly', 'monthly'];
 const statusColor: Record<string, string> = { expected: 'outline', received: 'default', disputed: 'destructive', clawed_back: 'secondary' };
 
 function formatCurrency(amount: number) {
-  return new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR' }).format(amount);
+  return `R\u00a0${amount.toLocaleString('en-ZA', { maximumFractionDigits: 0 })}`;
 }
 
 export default function CommissionsPage() {

@@ -14,7 +14,7 @@ export default function PortalGoalsPage() {
     queryFn: async () => { const { data } = await portalApi.get('/portal/goals'); return data; },
   });
 
-  const fmt = (n: number) => new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR' }).format(n);
+  const fmt = (n: number) => `R ${n.toLocaleString('en-ZA', { maximumFractionDigits: 0 })}`;
 
   if (isLoading) return <div className="text-muted-foreground text-center py-12">Loading...</div>;
 
