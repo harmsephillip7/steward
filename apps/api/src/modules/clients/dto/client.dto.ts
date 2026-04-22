@@ -70,6 +70,11 @@ export class CreateClientDto {
   @IsOptional()
   @IsEnum(TaxResidency)
   tax_residency?: TaxResidency;
+
+  @ApiProperty({ enum: RiskProfile, required: false })
+  @IsOptional()
+  @IsEnum(RiskProfile)
+  risk_profile?: RiskProfile;
 }
 
 export class UpdateClientDto {

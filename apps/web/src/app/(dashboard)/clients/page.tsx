@@ -52,7 +52,10 @@ export default function ClientsPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    await createClient.mutateAsync(form);
+    const payload = Object.fromEntries(
+      Object.entries(form).filter(([, v]) => v !== ''),
+    ) as CreateClientDto;
+    await createClient.mutateAsync(payload);
     setOpen(false);
     setForm({ first_name: '', last_name: '', email: '', phone: '', risk_profile: '' });
   }
