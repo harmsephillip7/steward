@@ -16,6 +16,17 @@ export class PortfoliosService {
     private readonly auditService: AuditService,
   ) {}
 
+  async findAll(advisorId: string): Promise<Portfolio[]> {
+    return this.portfolioRepo
+      .createQueryBuilder('p')
+      .innerJoin('p.client', 'c')
+      .where('c.advisor_id = :advisorId', { advisorId })
+      .leftJoinAndSelect('p.portfolio_funds', 'pf')
+      .leftJoinAndSelect('pf.fund', 'f')
+      .orderBy('p.created_at', 'DESC')
+      .getMany();
+  }
+
   async create(advisorId: string, dto: CreatePortfolioDto): Promise<Portfolio> {
     const portfolio = this.portfolioRepo.create({
       client_id: dto.client_id,
