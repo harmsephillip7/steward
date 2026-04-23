@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { Providers } from './providers';
 import { Inter } from "next/font/google";
@@ -9,12 +9,15 @@ export const metadata: Metadata = {
   title: 'Steward — Christian Values Advisory Platform',
   description: 'Ethical investment screening and financial planning for South African advisors.',
   manifest: '/manifest.json',
-  themeColor: '#003B43',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
     title: 'Steward',
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: '#003B43',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
