@@ -14,22 +14,30 @@ const TAG_LENGTH = 16;
  */
 @Injectable()
 export class EncryptionService {
-  private readonly key: Buffer;
+  private readonly key: Buffer | null;
 
   constructor(private readonly config: ConfigService) {
     const rawKey = this.config.get<string>('ENCRYPTION_KEY');
-    if (!rawKey || rawKey.length !== 64) {
+    if (rawKey && rawKey.length === 64) {
+      this.key = Buffer.from(rawKey, 'hex');
+    } else {
+      this.key = null;
+    }
+  }
+
+  private requireKey(): Buffer {
+    if (!this.key) {
       throw new Error(
         'ENCRYPTION_KEY must be a 64-character hex string (32 bytes). ' +
           'Generate one with: node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'hex\'))"',
       );
     }
-    this.key = Buffer.from(rawKey, 'hex');
+    return this.key;
   }
 
   encrypt(plaintext: string): string {
     const iv = crypto.randomBytes(IV_LENGTH);
-    const cipher = crypto.createCipheriv(ALGORITHM, this.key, iv) as crypto.CipherGCM;
+    const cipher = crypto.createCipheriv(ALGORITHM, this.requireKey(), iv) as crypto.CipherGCM;
     const encrypted = Buffer.concat([cipher.update(plaintext, 'utf8'), cipher.final()]);
     const tag = cipher.getAuthTag();
     return `${iv.toString('hex')}:${tag.toString('hex')}:${encrypted.toString('hex')}`;
@@ -43,7 +51,7 @@ export class EncryptionService {
     const iv = Buffer.from(ivHex, 'hex');
     const tag = Buffer.from(tagHex, 'hex');
     const encrypted = Buffer.from(encryptedHex, 'hex');
-    const decipher = crypto.createDecipheriv(ALGORITHM, this.key, iv) as crypto.DecipherGCM;
+    const decipher = crypto.createDecipheriv(ALGORITHM, this.requireKey(), iv) as crypto.DecipherGCM;
     decipher.setAuthTag(tag);
     return decipher.update(encrypted) + decipher.final('utf8');
   }
