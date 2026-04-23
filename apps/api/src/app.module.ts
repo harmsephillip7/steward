@@ -84,6 +84,11 @@ import { Message } from './modules/messaging/entities/message.entity';
 import { MessageTemplate } from './modules/messaging/entities/message-template.entity';
 import { MessagingModule } from './modules/messaging/messaging.module';
 
+// Entities — budget
+import { BudgetStatement } from './modules/budget/entities/budget-statement.entity';
+import { BudgetAnalysis } from './modules/budget/entities/budget-analysis.entity';
+import { BudgetModule } from './modules/budget/budget.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -122,6 +127,8 @@ import { MessagingModule } from './modules/messaging/messaging.module';
           Notification,
           // Messaging integrations
           MessagingConnection, Message, MessageTemplate,
+          // Budget
+          BudgetStatement, BudgetAnalysis,
         ],
         synchronize: config.get<string>('NODE_ENV') !== 'production',
         logging: false,
@@ -151,6 +158,7 @@ import { MessagingModule } from './modules/messaging/messaging.module';
     NotificationsModule,
     DashboardModule,
     MessagingModule,
+    BudgetModule,
   ],
   controllers: [AppController],
   providers: [AppService],

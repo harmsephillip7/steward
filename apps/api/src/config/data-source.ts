@@ -40,6 +40,8 @@ import { Integration } from '../modules/commissions/entities/commission.entity';
 import { Firm, FirmMember, Team, TeamMember } from '../modules/firm/entities/firm.entity';
 import { ClientPortalUser } from '../modules/portal/entities/client-portal-user.entity';
 import { ClientOnboardingToken } from '../modules/portal/entities/client-onboarding-token.entity';
+import { BudgetStatement } from '../modules/budget/entities/budget-statement.entity';
+import { BudgetAnalysis } from '../modules/budget/entities/budget-analysis.entity';
 import { MessagingConnection } from '../modules/messaging/entities/messaging-connection.entity';
 import { Message } from '../modules/messaging/entities/message.entity';
 import { MessageTemplate } from '../modules/messaging/entities/message-template.entity';
@@ -95,6 +97,8 @@ const AppDataSource = new DataSource({
     TeamMember,
     ClientPortalUser,
     ClientOnboardingToken,
+    BudgetStatement,
+    BudgetAnalysis,
     MessagingConnection,
     Message,
     MessageTemplate,
