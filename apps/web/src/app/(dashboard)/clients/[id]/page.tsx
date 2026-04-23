@@ -5,6 +5,14 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useClient } from '@/lib/hooks/use-clients';
 import { useUpdateCompliance } from '@/lib/hooks/use-compliance';
+import {
+  useOutstandingSteps,
+  useCreateOnboardingLink,
+  useOnboardingLinks,
+  useRevokeOnboardingLink,
+  STEP_LABELS,
+  OnboardingLink,
+} from '@/lib/hooks/use-onboarding-links';
 import { ClientDocuments } from '@/components/documents/client-documents';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -17,9 +25,10 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import {
-  ArrowLeft, User, CheckCircle, XCircle, Briefcase, FileText, Calendar, Pencil, Shield,
+  ArrowLeft, User, CheckCircle, XCircle, Briefcase, FileText, Calendar, Pencil, Shield, Link2, Trash2, Copy, ExternalLink,
 } from 'lucide-react';
 import { Breadcrumbs } from '@/components/ui/breadcrumbs';
+import { toast } from 'sonner';
 
 function StatusIcon({ done }: { done: boolean }) {
   return done
@@ -58,6 +67,36 @@ export default function ClientDetailPage() {
     source_of_wealth_declared: false,
     risk_profile: '',
   });
+
+  // Onboarding link state
+  const [linkDialog, setLinkDialog] = useState(false);
+  const [selectedSteps, setSelectedSteps] = useState<string[]>([]);
+  const [expiryDays, setExpiryDays] = useState(30);
+  const [generatedLink, setGeneratedLink] = useState<OnboardingLink | null>(null);
+  const { data: outstanding } = useOutstandingSteps(id);
+  const { data: existingLinks } = useOnboardingLinks();
+  const createLink = useCreateOnboardingLink();
+  const revokeLink = useRevokeOnboardingLink();
+
+  const clientLinks = existingLinks?.filter(l => l.client?.id === id && !l.is_used) ?? [];
+
+  function openLinkDialog() {
+    const steps = outstanding?.steps ?? [];
+    setSelectedSteps(steps);
+    setExpiryDays(30);
+    setGeneratedLink(null);
+    setLinkDialog(true);
+  }
+
+  async function handleCreateLink() {
+    if (!selectedSteps.length) return;
+    const result = await createLink.mutateAsync({
+      client_id: id,
+      steps: selectedSteps,
+      expiry_days: expiryDays,
+    });
+    setGeneratedLink(result);
+  }
 
   if (isLoading) {
     return (
@@ -170,22 +209,32 @@ export default function ClientDetailPage() {
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center justify-between">
               <span className="flex items-center gap-2"><Shield className="h-4 w-4" /> Compliance</span>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-7"
-                onClick={() => {
-                  setCompForm({
-                    fica_complete: client.fica_complete,
-                    kyc_complete: client.kyc_complete,
-                    source_of_wealth_declared: client.source_of_wealth_declared,
-                    risk_profile: client.risk_profile ?? '',
-                  });
-                  setEditCompliance(true);
-                }}
-              >
-                <Pencil className="h-3.5 w-3.5" />
-              </Button>
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 text-xs"
+                  onClick={openLinkDialog}
+                >
+                  <Link2 className="h-3.5 w-3.5 mr-1" /> Send Link
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7"
+                  onClick={() => {
+                    setCompForm({
+                      fica_complete: client.fica_complete,
+                      kyc_complete: client.kyc_complete,
+                      source_of_wealth_declared: client.source_of_wealth_declared,
+                      risk_profile: client.risk_profile ?? '',
+                    });
+                    setEditCompliance(true);
+                  }}
+                >
+                  <Pencil className="h-3.5 w-3.5" />
+                </Button>
+              </div>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -208,6 +257,47 @@ export default function ClientDetailPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Active onboarding links */}
+      {clientLinks.length > 0 && (
+        <Card className="mb-6">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+              <Link2 className="h-4 w-4" /> Active Onboarding Links
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {clientLinks.map(link => (
+              <div key={link.id} className="flex items-center justify-between text-sm p-2 rounded border bg-muted/30">
+                <div className="flex-1 min-w-0">
+                  <p className="font-mono text-xs truncate text-muted-foreground">{link.url}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {link.steps.map(s => STEP_LABELS[s] ?? s).join(' · ')} &bull; Expires {new Date(link.expires_at).toLocaleDateString('en-ZA')}
+                  </p>
+                </div>
+                <div className="flex items-center gap-1 ml-2 shrink-0">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7"
+                    onClick={() => { navigator.clipboard.writeText(link.url); toast.success('Link copied'); }}
+                  >
+                    <Copy className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 text-red-500 hover:text-red-600"
+                    onClick={() => revokeLink.mutate(link.id)}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Portfolios */}
       <Card className="mb-6">
@@ -304,6 +394,113 @@ export default function ClientDetailPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Onboarding Link Dialog */}
+      <Dialog open={linkDialog} onOpenChange={v => { setLinkDialog(v); if (!v) setGeneratedLink(null); }}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Send Onboarding Link — {client?.first_name} {client?.last_name}</DialogTitle>
+          </DialogHeader>
+
+          {generatedLink ? (
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">Link generated! Share it with the client:</p>
+              <div className="flex items-center gap-2 p-3 rounded-md border bg-muted/40">
+                <p className="text-xs font-mono break-all flex-1">{generatedLink.url}</p>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="shrink-0"
+                  onClick={() => { navigator.clipboard.writeText(generatedLink.url); toast.success('Copied!'); }}
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+                <a href={generatedLink.url} target="_blank" rel="noopener noreferrer">
+                  <Button variant="ghost" size="icon" className="shrink-0">
+                    <ExternalLink className="h-4 w-4" />
+                  </Button>
+                </a>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  className="flex-1"
+                  variant="outline"
+                  onClick={() => {
+                    const url = `https://wa.me/${client?.phone?.replace(/\D/g, '')}?text=${encodeURIComponent(`Hi ${client?.first_name}, please complete your onboarding here: ${generatedLink.url}`)}`;
+                    window.open(url, '_blank');
+                  }}
+                >
+                  WhatsApp
+                </Button>
+                <Button
+                  className="flex-1"
+                  variant="outline"
+                  onClick={() => {
+                    const subject = encodeURIComponent('Complete your onboarding');
+                    const body = encodeURIComponent(`Hi ${client?.first_name},\n\nPlease complete your onboarding by clicking the link below:\n${generatedLink.url}\n\nThis link expires on ${new Date(generatedLink.expires_at).toLocaleDateString('en-ZA')}.`);
+                    window.location.href = `mailto:${client?.email}?subject=${subject}&body=${body}`;
+                  }}
+                >
+                  Email
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div>
+                <p className="text-sm font-medium mb-2">Select steps to include:</p>
+                {Object.entries(STEP_LABELS).map(([key, label]) => (
+                  <label key={key} className="flex items-center gap-2 py-1.5 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={selectedSteps.includes(key)}
+                      onChange={e => {
+                        setSelectedSteps(prev =>
+                          e.target.checked ? [...prev, key] : prev.filter(s => s !== key)
+                        );
+                      }}
+                      className="rounded"
+                    />
+                    <span className="text-sm">{label}</span>
+                    {outstanding?.steps.includes(key) && (
+                      <Badge variant="outline" className="text-xs text-amber-600 border-amber-300">Pending</Badge>
+                    )}
+                  </label>
+                ))}
+              </div>
+              <div className="space-y-1.5">
+                <Label>Link expires in</Label>
+                <select
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  value={expiryDays}
+                  onChange={e => setExpiryDays(Number(e.target.value))}
+                >
+                  <option value={7}>7 days</option>
+                  <option value={14}>14 days</option>
+                  <option value={30}>30 days</option>
+                  <option value={60}>60 days</option>
+                </select>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            {generatedLink ? (
+              <Button variant="outline" onClick={() => setLinkDialog(false)}>Close</Button>
+            ) : (
+              <>
+                <Button variant="outline" onClick={() => setLinkDialog(false)}>Cancel</Button>
+                <Button
+                  onClick={handleCreateLink}
+                  disabled={!selectedSteps.length || createLink.isPending}
+                >
+                  {createLink.isPending ? 'Creating...' : 'Generate Link'}
+                </Button>
+              </>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Compliance Edit Dialog */}
       <Dialog open={editCompliance} onOpenChange={setEditCompliance}>

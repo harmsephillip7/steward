@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Body, Param, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Body, Param, UseGuards, Request } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PortalAuthGuard } from './guards/portal-auth.guard';
@@ -60,5 +60,54 @@ export class PortalController {
   @Patch('users/:id/toggle')
   toggleUser(@Request() req: any, @Param('id') id: string) {
     return this.portal.togglePortalUser(id, req.user.id);
+  }
+
+  // ── Onboarding Links (Advisor-side) ──────────────────────────
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Post('onboarding-links')
+  createOnboardingLink(
+    @Request() req: any,
+    @Body() body: { client_id: string; steps: string[]; expiry_days?: number },
+  ) {
+    return this.portal.createOnboardingLink(req.user.id, body.client_id, body.steps, body.expiry_days);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Get('onboarding-links')
+  listOnboardingLinks(@Request() req: any) {
+    return this.portal.listOnboardingLinks(req.user.id);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Delete('onboarding-links/:id')
+  revokeOnboardingLink(@Request() req: any, @Param('id') id: string) {
+    return this.portal.revokeOnboardingLink(id, req.user.id);
+  }
+
+  /** Advisor helper: get outstanding steps for a client */
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Get('onboarding-links/outstanding/:clientId')
+  getOutstandingSteps(@Request() req: any, @Param('clientId') clientId: string) {
+    return this.portal.getOutstandingStepsForClient(req.user.id, clientId);
+  }
+
+  // ── Public: Client-facing onboarding (no auth — token is credential) ──
+
+  @Get('onboarding/:token')
+  getOnboardingSession(@Param('token') token: string) {
+    return this.portal.getOnboardingSession(token);
+  }
+
+  @Post('onboarding/:token/submit')
+  submitOnboardingStep(
+    @Param('token') token: string,
+    @Body() body: { step: string; data: Record<string, any> },
+  ) {
+    return this.portal.submitOnboardingStep(token, body.step, body.data);
   }
 }

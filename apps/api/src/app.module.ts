@@ -66,6 +66,7 @@ import { CommissionsModule } from './modules/commissions/commissions.module';
 
 // Entities — portal
 import { ClientPortalUser } from './modules/portal/entities/client-portal-user.entity';
+import { ClientOnboardingToken } from './modules/portal/entities/client-onboarding-token.entity';
 import { PortalModule } from './modules/portal/portal.module';
 
 // Entities — firm management
@@ -114,7 +115,7 @@ import { MessagingModule } from './modules/messaging/messaging.module';
           // Commissions & Integrations
           Commission, Integration,
           // Portal
-          ClientPortalUser,
+          ClientPortalUser, ClientOnboardingToken,
           // Firm management
           Firm, FirmMember, Team, TeamMember,
           // Notifications
