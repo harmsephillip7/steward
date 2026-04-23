@@ -1,4 +1,5 @@
-import { Injectable, UnauthorizedException, NotFoundException, ConflictException, BadRequestException, GoneException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, NotFoundException, ConflictException, BadRequestException, GoneException, Logger } from '@nestjs/common';
+import { randomUUID } from 'crypto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
@@ -10,6 +11,8 @@ import { Client } from '../clients/entities/client.entity';
 
 @Injectable()
 export class PortalService {
+  private readonly logger = new Logger(PortalService.name);
+
   constructor(
     @InjectRepository(ClientPortalUser) private portalUserRepo: Repository<ClientPortalUser>,
     @InjectRepository(ClientOnboardingToken) private tokenRepo: Repository<ClientOnboardingToken>,
@@ -145,6 +148,7 @@ export class PortalService {
     const record = this.tokenRepo.create({
       advisor_id: advisorId,
       client_id: clientId,
+      token: randomUUID(), // explicitly generate so TypeORM doesn't leave it null
       steps,
       expires_at: expiresAt,
       completed_steps: [],

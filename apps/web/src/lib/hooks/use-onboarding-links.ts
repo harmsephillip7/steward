@@ -59,7 +59,10 @@ export function useCreateOnboardingLink() {
       qc.invalidateQueries({ queryKey: ['onboarding-links'] });
       toast.success('Onboarding link created');
     },
-    onError: () => toast.error('Failed to create link'),
+    onError: (err: any) => {
+      const msg = err?.response?.data?.message || err?.message || 'Failed to create link';
+      toast.error(typeof msg === 'string' ? msg : 'Failed to create link');
+    },
   });
 }
 

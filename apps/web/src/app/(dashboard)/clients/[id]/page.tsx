@@ -90,12 +90,16 @@ export default function ClientDetailPage() {
 
   async function handleCreateLink() {
     if (!selectedSteps.length) return;
-    const result = await createLink.mutateAsync({
-      client_id: id,
-      steps: selectedSteps,
-      expiry_days: expiryDays,
-    });
-    setGeneratedLink(result);
+    try {
+      const result = await createLink.mutateAsync({
+        client_id: id,
+        steps: selectedSteps,
+        expiry_days: expiryDays,
+      });
+      setGeneratedLink(result);
+    } catch {
+      // error already shown by onError in the mutation hook
+    }
   }
 
   if (isLoading) {
