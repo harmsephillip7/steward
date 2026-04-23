@@ -31,6 +31,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
+import { Suspense } from 'react';
 import {
   Mail, MessageSquare, Smartphone, CheckCircle2, XCircle, AlertCircle,
   Plus, Trash2, Unplug, ExternalLink, Copy, ChevronRight, ChevronLeft,
@@ -564,9 +565,9 @@ function TemplateManager() {
   );
 }
 
-// ─── Main Page ────────────────────────────────────────────────────────────────
+// ─── Main Page (inner — uses useSearchParams) ────────────────────────────────
 
-export default function IntegrationsPage() {
+function IntegrationsPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -847,5 +848,13 @@ export default function IntegrationsPage() {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+export default function IntegrationsPage() {
+  return (
+    <Suspense fallback={<div className="p-6 text-sm text-muted-foreground">Loading...</div>}>
+      <IntegrationsPageInner />
+    </Suspense>
   );
 }

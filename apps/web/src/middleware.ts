@@ -34,5 +34,13 @@ export const config = {
     '/compliance/:path*',
     '/settings/:path*',
     '/portal/:path*',
+    '/integrations/:path*',
+    '/integrations',
+    '/crm/:path*',
+    '/commissions/:path*',
+    '/documents/:path*',
+    '/advisory/:path*',
+    '/proposals/:path*',
+    '/firm/:path*',
   ],
 };
