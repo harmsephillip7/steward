@@ -27,8 +27,8 @@ function formatCurrency(amount: number) {
 }
 
 export default function CommissionsPage() {
-  const [statusFilter, setStatusFilter] = useState('');
-  const { data: commissions = [], isLoading } = useCommissions(statusFilter || undefined);
+  const [statusFilter, setStatusFilter] = useState('all');
+  const { data: commissions = [], isLoading } = useCommissions(statusFilter === 'all' ? undefined : statusFilter);
   const { data: summary } = useCommissionSummary();
   const { data: integrations = [] } = useIntegrations();
   const { data: clients = [] } = useQuery({ queryKey: ['clients'], queryFn: async () => { const { data } = await api.get('/clients'); return data; } });
