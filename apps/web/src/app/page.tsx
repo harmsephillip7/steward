@@ -141,7 +141,7 @@ export default function Home() {
           <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-brand-900 mb-6">
             Investing with Purpose
           </h2>
-          <p className="text-brand-700/80 text-lg leading-relaxed">
+          <p className="text-brand-700 text-lg leading-relaxed">
             We believe finances should serve a higher purpose. Too often, faith-driven investors unknowingly fund industries that conflict with their deepest convictions. Steward was created to bridge that gap — giving advisors the tools to honour God with every rand invested, while still delivering excellent financial outcomes for their clients.
           </p>
         </div>
@@ -209,7 +209,7 @@ export default function Home() {
                 )}
                 <h3 className="text-lg font-bold text-brand-900 mb-1">{t.name}</h3>
                 <div className="text-3xl font-extrabold text-brand-900 mt-3 mb-1">{t.price}</div>
-                <div className="text-xs text-muted-foreground mb-5">{t.sub}</div>
+                <div className="text-xs text-foreground/65 mb-5">{t.sub}</div>
                 <ul className="space-y-2 text-sm text-foreground/80 flex-1 mb-6">
                   {t.highlights.map((h) => (
                     <li key={h} className="flex gap-2">
@@ -246,7 +246,7 @@ export default function Home() {
           <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">
             Ready to Invest with Integrity?
           </h2>
-          <p className="text-white/60 mb-10 text-lg">
+          <p className="text-white/80 mb-10 text-lg">
             Join a growing community of South African advisors using Steward to align portfolios with faith-based principles.
           </p>
           <Link
@@ -261,7 +261,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="bg-brand-950 py-14">
         <div className="max-w-6xl mx-auto px-6">
-          <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-8 mb-10 text-sm text-white/50">
+          <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-8 mb-10 text-sm text-white/75">
             <div>
               <div className="text-white font-bold text-lg mb-3">Steward</div>
               <p className="leading-relaxed">
@@ -292,7 +292,7 @@ export default function Home() {
               </ul>
             </div>
           </div>
-          <div className="border-t border-white/10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-white/30">
+          <div className="border-t border-white/10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-white/60">
             <span>&copy; {new Date().getFullYear()} Steward. All rights reserved.</span>
             <span>ZAR pricing, ex-VAT. 14-day free trial. No card required.</span>
           </div>

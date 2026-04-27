@@ -134,11 +134,11 @@ export default function PricingPage() {
               )}
               <div className="mb-6">
                 <h3 className="text-xl font-bold text-brand-900 mb-1">{t.name}</h3>
-                <p className="text-sm text-muted-foreground">{t.tagline}</p>
+                <p className="text-sm text-foreground/70">{t.tagline}</p>
               </div>
               <div className="mb-6">
                 <div className="text-3xl font-bold text-brand-900">{t.priceLabel}</div>
-                <div className="text-xs text-muted-foreground mt-1">{t.priceSub}</div>
+                <div className="text-xs text-foreground/65 mt-1">{t.priceSub}</div>
               </div>
               <ul className="space-y-2.5 text-sm text-foreground/80 mb-6 flex-1">
                 {t.features.map((f) => (
@@ -150,7 +150,7 @@ export default function PricingPage() {
               </ul>
               <div className="border-t border-border pt-4 mb-6 space-y-1">
                 {t.caps.map((c) => (
-                  <div key={c} className="text-xs text-muted-foreground">
+                  <div key={c} className="text-xs text-foreground/65">
                     {c}
                   </div>
                 ))}
@@ -173,7 +173,7 @@ export default function PricingPage() {
       <section className="py-16 bg-brand-50">
         <div className="max-w-4xl mx-auto px-6">
           <h2 className="text-2xl font-bold text-brand-900 mb-2 text-center">Add-ons</h2>
-          <p className="text-center text-muted-foreground text-sm mb-8">
+          <p className="text-center text-foreground/70 text-sm mb-8">
             Available on every tier. Charged monthly only when used.
           </p>
           <div className="grid sm:grid-cols-2 gap-4 text-sm">
@@ -202,7 +202,7 @@ export default function PricingPage() {
                   {f.q}
                   <span className="text-brand-500 text-xl group-open:rotate-45 transition-transform">+</span>
                 </summary>
-                <p className="text-sm text-muted-foreground mt-3 leading-relaxed">{f.a}</p>
+                <p className="text-sm text-foreground/70 mt-3 leading-relaxed">{f.a}</p>
               </details>
             ))}
           </div>
