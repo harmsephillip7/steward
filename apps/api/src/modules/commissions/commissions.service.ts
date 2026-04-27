@@ -46,14 +46,15 @@ export class CommissionsService {
     const byType = comms.reduce((acc, c) => { acc[c.commission_type] = (acc[c.commission_type] || 0) + Number(c.amount); return acc; }, {} as Record<string, number>);
     const byMonth = Array.from({ length: 12 }, (_, i) => {
       const monthComms = comms.filter(c => new Date(c.effective_date).getMonth() === i);
-      return { month: i + 1, total: monthComms.reduce((s, c) => s + Number(c.amount), 0), count: monthComms.length };
+      return { month: String(i + 1).padStart(2, '0'), amount: monthComms.reduce((s, c) => s + Number(c.amount), 0) };
     });
     const total = comms.reduce((s, c) => s + Number(c.amount), 0);
-    const totalVat = comms.reduce((s, c) => s + Number(c.vat_amount || 0), 0);
+    const totalVAT = comms.reduce((s, c) => s + Number(c.vat_amount || 0), 0);
     const totalNet = comms.reduce((s, c) => s + Number(c.net_amount || 0), 0);
-    const pending = comms.filter(c => c.status === 'pending').reduce((s, c) => s + Number(c.amount), 0);
+    const totalReceived = comms.filter(c => c.status === 'received').reduce((s, c) => s + Number(c.amount), 0);
+    const totalExpected = comms.filter(c => c.status === 'expected' || c.status === 'pending').reduce((s, c) => s + Number(c.amount), 0);
 
-    return { year: y, total, totalVat, totalNet, pending, byType, byMonth, count: comms.length };
+    return { year: y, total, totalReceived, totalExpected, totalVAT, totalNet, byType, byMonth, count: comms.length };
   }
 
   // ── Integrations ─────────────────────────────────────────────
