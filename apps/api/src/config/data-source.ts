@@ -46,6 +46,10 @@ import { MessagingConnection } from '../modules/messaging/entities/messaging-con
 import { Message } from '../modules/messaging/entities/message.entity';
 import { MessageTemplate } from '../modules/messaging/entities/message-template.entity';
 import { Report as ReportEntity } from '../modules/reports/entities/report.entity';
+import { FitAndProperRecord } from '../modules/compliance/entities/fit-and-proper.entity';
+import { CpdRecord } from '../modules/compliance/entities/cpd-record.entity';
+import { Complaint } from '../modules/compliance/entities/complaint.entity';
+import { SanctionsScreen } from '../modules/compliance/entities/sanctions-screen.entity';
 
 const databaseUrl = process.env.DATABASE_URL;
 
@@ -104,6 +108,10 @@ const AppDataSource = new DataSource({
     Message,
     MessageTemplate,
     ReportEntity,
+    FitAndProperRecord,
+    CpdRecord,
+    Complaint,
+    SanctionsScreen,
   ],
   migrations: ['dist/config/migrations/*.js'],
   synchronize: false,

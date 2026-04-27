@@ -62,6 +62,12 @@ import { AdvisoryModule } from './modules/advisory/advisory.module';
 // Entities — reports
 import { Report as ReportEntity } from './modules/reports/entities/report.entity';
 
+// Entities — enhanced compliance (Phase 1C)
+import { FitAndProperRecord } from './modules/compliance/entities/fit-and-proper.entity';
+import { CpdRecord } from './modules/compliance/entities/cpd-record.entity';
+import { Complaint } from './modules/compliance/entities/complaint.entity';
+import { SanctionsScreen } from './modules/compliance/entities/sanctions-screen.entity';
+
 // Entities — enhanced compliance
 import { ComplianceReview, ConflictOfInterest, RegulatoryReturn } from './modules/compliance/entities/enhanced-compliance.entity';
 
@@ -136,6 +142,8 @@ import { BudgetModule } from './modules/budget/budget.module';
           BudgetStatement, BudgetAnalysis,
           // Reports
           ReportEntity,
+          // Compliance (Phase 1C)
+          FitAndProperRecord, CpdRecord, Complaint, SanctionsScreen,
         ],
         synchronize: config.get<string>('NODE_ENV') !== 'production',
         logging: false,
