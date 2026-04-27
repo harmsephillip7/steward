@@ -8,6 +8,7 @@ import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { Advisor } from '../advisors/entities/advisor.entity';
+import { FirmMember } from '../firm/entities/firm.entity';
 import { LoginDto, RegisterAdvisorDto } from './dto/auth.dto';
 
 @Injectable()
@@ -15,6 +16,8 @@ export class AuthService {
   constructor(
     @InjectRepository(Advisor)
     private readonly advisorRepo: Repository<Advisor>,
+    @InjectRepository(FirmMember)
+    private readonly memberRepo: Repository<FirmMember>,
     private readonly jwtService: JwtService,
   ) {}
 
@@ -57,11 +60,16 @@ export class AuthService {
     return this.advisorRepo.findOne({ where: { id } });
   }
 
-  private signToken(advisor: Advisor) {
+  private async signToken(advisor: Advisor) {
+    const membership = await this.memberRepo.findOne({
+      where: { advisor_id: advisor.id, is_active: true },
+    });
     const payload = {
       sub: advisor.id,
       email: advisor.email,
       firm_name: advisor.firm_name,
+      firm_id: membership?.firm_id ?? null,
+      firm_role: membership?.role ?? null,
     };
     return {
       access_token: this.jwtService.sign(payload),
@@ -72,6 +80,8 @@ export class AuthService {
         firm_name: advisor.firm_name,
         fsp_number: advisor.fsp_number,
         logo_url: advisor.logo_url,
+        firm_id: membership?.firm_id ?? null,
+        firm_role: membership?.role ?? null,
       },
     };
   }

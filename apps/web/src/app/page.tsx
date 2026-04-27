@@ -52,6 +52,12 @@ export default function Home() {
           <Link href="/" className="text-xl font-bold tracking-tight text-brand-700">
             Steward
           </Link>
+          <nav className="hidden md:flex items-center gap-7 text-sm text-brand-700/80">
+            <Link href="/pricing" className="hover:text-brand-700 transition">Pricing</Link>
+            <Link href="/for-firms" className="hover:text-brand-700 transition">For Firms</Link>
+            <Link href="/for-enterprise" className="hover:text-brand-700 transition">Enterprise</Link>
+            <Link href="/security" className="hover:text-brand-700 transition">Security</Link>
+          </nav>
           <div className="flex items-center gap-3">
             <Link
               href="/login"
@@ -63,7 +69,7 @@ export default function Home() {
               href="/signup"
               className="text-sm font-semibold bg-brand-600 hover:bg-brand-500 text-white px-5 py-2 rounded-lg transition shadow-sm"
             >
-              Get Started
+              Start Free Trial
             </Link>
           </div>
         </div>

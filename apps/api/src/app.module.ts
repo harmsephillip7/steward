@@ -2,7 +2,9 @@ import { Module } from '@nestjs/common';
 import { MiddlewareConsumer, NestModule } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { APP_INTERCEPTOR } from '@nestjs/core';
 import { CorrelationIdMiddleware } from './common/correlation-id.middleware';
+import { TenantInterceptor } from './common/tenant.interceptor';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './modules/auth/auth.module';
@@ -100,6 +102,12 @@ import { BudgetStatement } from './modules/budget/entities/budget-statement.enti
 import { BudgetAnalysis } from './modules/budget/entities/budget-analysis.entity';
 import { BudgetModule } from './modules/budget/budget.module';
 
+// Entities — billing (Phase 1)
+import { Plan, Subscription, Invoice, UsageMeter } from './modules/billing/entities/billing.entity';
+import { SalesLead } from './modules/billing/entities/sales-lead.entity';
+import { TenantRouting } from './modules/firm/entities/tenant-routing.entity';
+import { BillingModule } from './modules/billing/billing.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -144,6 +152,8 @@ import { BudgetModule } from './modules/budget/budget.module';
           ReportEntity,
           // Compliance (Phase 1C)
           FitAndProperRecord, CpdRecord, Complaint, SanctionsScreen,
+          // Billing (Phase 1)
+          Plan, Subscription, Invoice, UsageMeter, SalesLead, TenantRouting,
         ],
         synchronize: config.get<string>('NODE_ENV') !== 'production',
         logging: false,
@@ -151,6 +161,9 @@ import { BudgetModule } from './modules/budget/budget.module';
       }),
       inject: [ConfigService],
     }),
+
+    // Make FirmMember repo available to the global TenantInterceptor.
+    TypeOrmModule.forFeature([FirmMember]),
 
     AuthModule,
     AdvisorsModule,
@@ -174,9 +187,13 @@ import { BudgetModule } from './modules/budget/budget.module';
     DashboardModule,
     MessagingModule,
     BudgetModule,
+    BillingModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    { provide: APP_INTERCEPTOR, useClass: TenantInterceptor },
+  ],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

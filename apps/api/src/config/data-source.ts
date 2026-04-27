@@ -50,6 +50,9 @@ import { FitAndProperRecord } from '../modules/compliance/entities/fit-and-prope
 import { CpdRecord } from '../modules/compliance/entities/cpd-record.entity';
 import { Complaint } from '../modules/compliance/entities/complaint.entity';
 import { SanctionsScreen } from '../modules/compliance/entities/sanctions-screen.entity';
+import { Plan, Subscription, Invoice, UsageMeter } from '../modules/billing/entities/billing.entity';
+import { SalesLead } from '../modules/billing/entities/sales-lead.entity';
+import { TenantRouting } from '../modules/firm/entities/tenant-routing.entity';
 
 const databaseUrl = process.env.DATABASE_URL;
 
@@ -112,6 +115,12 @@ const AppDataSource = new DataSource({
     CpdRecord,
     Complaint,
     SanctionsScreen,
+    Plan,
+    Subscription,
+    Invoice,
+    UsageMeter,
+    SalesLead,
+    TenantRouting,
   ],
   migrations: ['dist/config/migrations/*.js'],
   synchronize: false,

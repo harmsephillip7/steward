@@ -30,6 +30,25 @@ export class Firm {
   @Column('jsonb', { nullable: true })
   settings: Record<string, any>;
 
+  /** White-label branding (Firm + Enterprise tiers). */
+  @Column('jsonb', { nullable: true })
+  branding: {
+    primary_color?: string;
+    accent_color?: string;
+    logo_url?: string;
+    favicon_url?: string;
+    font_family?: string;
+    report_disclaimer?: string;
+  } | null;
+
+  /** Custom domain for client portal / dashboard (Enterprise only). */
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  custom_domain: string | null;
+
+  /** Plan tier — kept denormalised for cheap reads. Source of truth is subscriptions.plan_id. */
+  @Column({ type: 'varchar', length: 32, default: 'firm' })
+  plan_code: string;
+
   @OneToMany(() => FirmMember, fm => fm.firm)
   members: FirmMember[];
 

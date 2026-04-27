@@ -122,6 +122,7 @@ export default function SettingsPage() {
           <TabsTrigger value="profile">Profile & Branding</TabsTrigger>
           <TabsTrigger value="proposals">Proposals</TabsTrigger>
           <TabsTrigger value="fees">Fee Schedule</TabsTrigger>
+          <TabsTrigger value="billing">Billing</TabsTrigger>
           <TabsTrigger value="data">Data Management</TabsTrigger>
         </TabsList>
 
@@ -423,6 +424,11 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
         </TabsContent>
+
+        {/* Billing Tab */}
+        <TabsContent value="billing" className="space-y-4">
+          <BillingSettings />
+        </TabsContent>
       </Tabs>
     </div>
   );
@@ -659,6 +665,213 @@ function ProposalsSettingsTab() {
         </CardContent>
       </Card>
     </TabsContent>
+  );
+}
+
+// ── Billing Settings Tab ───────────────────────────────────────
+interface SubscriptionData {
+  id: string;
+  plan_code: string;
+  status: 'trialing' | 'active' | 'past_due' | 'cancelled' | 'paused' | 'expired';
+  seats: number;
+  trial_ends_at: string | null;
+  current_period_end: string | null;
+  cancel_at_period_end: boolean;
+  past_due_since: string | null;
+}
+
+interface PlanData {
+  code: string;
+  name: string;
+  price_per_seat_cents: number;
+  platform_fee_cents: number;
+  min_seats: number;
+}
+
+function formatZAR(cents: number) {
+  return new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR', minimumFractionDigits: 0 }).format(cents / 100);
+}
+
+function BillingSettings() {
+  const queryClient = useQueryClient();
+  const [seatInput, setSeatInput] = useState<number | null>(null);
+
+  const { data: subscription, isLoading } = useQuery({
+    queryKey: ['billing', 'subscription'],
+    queryFn: async () => {
+      try {
+        const { data } = await api.get<{ subscription: SubscriptionData; usage: any } | null>('/billing/subscription');
+        return data?.subscription ?? null;
+      } catch {
+        return null;
+      }
+    },
+  });
+
+  const { data: plans } = useQuery({
+    queryKey: ['billing', 'plans'],
+    queryFn: async () => {
+      const { data } = await api.get<PlanData[]>('/billing/plans');
+      return data;
+    },
+  });
+
+  const currentPlan = plans?.find((p) => p.code === subscription?.plan_code);
+
+  const updateSeats = useMutation({
+    mutationFn: async (seats: number) => {
+      const { data } = await api.post('/billing/subscription/seats', { seats });
+      return data;
+    },
+    onSuccess: () => {
+      toast.success('Seat count updated');
+      queryClient.invalidateQueries({ queryKey: ['billing', 'subscription'] });
+    },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Failed to update seats'),
+  });
+
+  const cancelSub = useMutation({
+    mutationFn: async () => {
+      const { data } = await api.post('/billing/subscription/cancel', {});
+      return data;
+    },
+    onSuccess: () => {
+      toast.success('Subscription will end at the current period');
+      queryClient.invalidateQueries({ queryKey: ['billing', 'subscription'] });
+    },
+    onError: () => toast.error('Failed to cancel subscription'),
+  });
+
+  if (isLoading) return <Skeleton className="h-48 w-full" />;
+
+  if (!subscription) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>No active subscription</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">
+            You don&apos;t have an active subscription. Choose a plan to get started.
+          </p>
+          <Button asChild className="mt-4">
+            <a href="/pricing">View pricing</a>
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const trialDaysLeft = subscription.trial_ends_at
+    ? Math.max(0, Math.ceil((new Date(subscription.trial_ends_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
+    : null;
+
+  const monthlyTotal = currentPlan
+    ? subscription.seats * currentPlan.price_per_seat_cents + currentPlan.platform_fee_cents
+    : 0;
+
+  return (
+    <div className="space-y-4">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            Subscription
+            <Badge variant={subscription.status === 'active' || subscription.status === 'trialing' ? 'default' : 'destructive'}>
+              {subscription.status}
+            </Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid sm:grid-cols-3 gap-4">
+            <div>
+              <Label className="text-xs text-muted-foreground">Plan</Label>
+              <div className="font-semibold capitalize">{currentPlan?.name ?? subscription.plan_code}</div>
+            </div>
+            <div>
+              <Label className="text-xs text-muted-foreground">Seats</Label>
+              <div className="font-semibold">{subscription.seats}</div>
+            </div>
+            <div>
+              <Label className="text-xs text-muted-foreground">Monthly total (ex-VAT)</Label>
+              <div className="font-semibold">{formatZAR(monthlyTotal)}</div>
+            </div>
+          </div>
+
+          {subscription.status === 'trialing' && trialDaysLeft !== null && (
+            <div className="rounded-lg bg-blue-50 border border-blue-200 p-3 text-sm">
+              <strong>{trialDaysLeft} days left</strong> in your free trial.
+              {trialDaysLeft <= 3 && ' Add a payment method soon to keep your workspace active.'}
+            </div>
+          )}
+
+          {subscription.status === 'past_due' && (
+            <div className="rounded-lg bg-amber-50 border border-amber-200 p-3 text-sm">
+              Your last payment failed. Update billing details before the 7-day grace window ends.
+            </div>
+          )}
+
+          {subscription.cancel_at_period_end && (
+            <div className="rounded-lg bg-muted/40 border border-border p-3 text-sm">
+              Cancellation scheduled for {subscription.current_period_end ? new Date(subscription.current_period_end).toLocaleDateString() : 'period end'}.
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {subscription.plan_code === 'firm' && currentPlan && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Manage seats</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-end gap-3">
+              <div className="flex-1">
+                <Label htmlFor="seats">Seats (minimum {currentPlan.min_seats})</Label>
+                <Input
+                  id="seats"
+                  type="number"
+                  min={currentPlan.min_seats}
+                  defaultValue={subscription.seats}
+                  onChange={(e) => setSeatInput(parseInt(e.target.value, 10))}
+                />
+              </div>
+              <Button
+                onClick={() => seatInput && updateSeats.mutate(seatInput)}
+                disabled={updateSeats.isPending || seatInput === null || seatInput === subscription.seats}
+              >
+                Update
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground mt-2">
+              {formatZAR(currentPlan.price_per_seat_cents)} per seat per month + {formatZAR(currentPlan.platform_fee_cents)} platform fee.
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {!subscription.cancel_at_period_end && subscription.status !== 'cancelled' && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Cancel subscription</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground mb-4">
+              Cancellation takes effect at the end of the current billing period. You retain
+              full access until then.
+            </p>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                if (confirm('Cancel your subscription at period end?')) cancelSub.mutate();
+              }}
+              disabled={cancelSub.isPending}
+            >
+              Cancel subscription
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+    </div>
   );
 }
 
