@@ -56,7 +56,15 @@ export class PortalService {
 
     const secret = this.config.get<string>('JWT_SECRET') || 'dev-secret';
     const token = jwt.sign({ sub: user.id, client_id: user.client_id, type: 'portal' }, secret, { expiresIn: '8h' });
-    return { token, client_id: user.client_id, display_name: user.display_name };
+    return {
+      token,
+      user: {
+        id: user.id,
+        email: user.email,
+        client_id: user.client_id,
+        display_name: user.display_name,
+      },
+    };
   }
 
   // ── Client Data Access ───────────────────────────────────────

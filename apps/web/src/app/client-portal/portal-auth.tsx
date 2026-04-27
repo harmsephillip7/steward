@@ -7,6 +7,7 @@ interface PortalUser {
   id: string;
   email: string;
   client_id: string;
+  display_name?: string;
 }
 
 interface PortalAuthContextType {
@@ -40,9 +41,9 @@ export function PortalAuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (email: string, password: string) => {
     const { data } = await api.post('/portal/login', { email, password });
-    setToken(data.access_token);
+    setToken(data.token);
     setUser(data.user);
-    localStorage.setItem('portal_token', data.access_token);
+    localStorage.setItem('portal_token', data.token);
     localStorage.setItem('portal_user', JSON.stringify(data.user));
   };
 
