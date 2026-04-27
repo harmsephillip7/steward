@@ -209,8 +209,8 @@ export default function Home() {
                 )}
                 <h3 className="text-lg font-bold text-brand-900 mb-1">{t.name}</h3>
                 <div className="text-3xl font-extrabold text-brand-900 mt-3 mb-1">{t.price}</div>
-                <div className="text-xs text-foreground/65 mb-5">{t.sub}</div>
-                <ul className="space-y-2 text-sm text-foreground/80 flex-1 mb-6">
+                <div className="text-xs text-foreground mb-5">{t.sub}</div>
+                <ul className="space-y-2 text-sm text-foreground flex-1 mb-6">
                   {t.highlights.map((h) => (
                     <li key={h} className="flex gap-2">
                       <span className="text-brand-600">✓</span>
