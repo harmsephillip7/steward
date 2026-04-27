@@ -6,6 +6,7 @@ import { FinancialPlanningService } from './financial-planning.service';
 import { TaxService } from './tax.service';
 import { RiskProfilingService } from './risk-profiling.service';
 import { BehaviourService } from './behaviour.service';
+import { FnaCalculatorService } from './fna-calculator.service';
 import { FinancialPlanningController } from './financial-planning.controller';
 import { ClientsModule } from '../clients/clients.module';
 import { AuditModule } from '../audit/audit.module';
@@ -17,7 +18,7 @@ import { AuditModule } from '../audit/audit.module';
     AuditModule,
   ],
   controllers: [FinancialPlanningController],
-  providers: [FinancialPlanningService, TaxService, RiskProfilingService, BehaviourService],
-  exports: [FinancialPlanningService, TaxService],
+  providers: [FinancialPlanningService, TaxService, RiskProfilingService, BehaviourService, FnaCalculatorService],
+  exports: [FinancialPlanningService, TaxService, FnaCalculatorService],
 })
 export class FinancialPlanningModule {}

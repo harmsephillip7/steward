@@ -5,6 +5,7 @@ import { FinancialPlanningService } from './financial-planning.service';
 import { RiskProfilingService } from './risk-profiling.service';
 import { BehaviourService } from './behaviour.service';
 import { TaxService } from './tax.service';
+import { FnaCalculatorService, FnaCalculateInput } from './fna-calculator.service';
 
 @ApiTags('financial-planning')
 @ApiBearerAuth()
@@ -16,7 +17,14 @@ export class FinancialPlanningController {
     private readonly riskService: RiskProfilingService,
     private readonly behaviourService: BehaviourService,
     private readonly taxService: TaxService,
+    private readonly calculator: FnaCalculatorService,
   ) {}
+
+  @Post('calculate')
+  @ApiOperation({ summary: 'Run FNA calculators (retirement, life, disability, estate, education, TFSA, Reg 28, etc.)' })
+  calculate(@Body() body: FnaCalculateInput) {
+    return this.calculator.calculate(body);
+  }
 
   @Get('questions/risk')
   @ApiOperation({ summary: 'Get risk profiling questionnaire' })
