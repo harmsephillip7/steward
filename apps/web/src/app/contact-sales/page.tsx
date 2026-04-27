@@ -1,10 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { MarketingNav, MarketingFooter } from '@/components/marketing/marketing-chrome';
 
-export default function ContactSalesPage() {
+function ContactSalesForm() {
   const params = useSearchParams();
   const initialTier = (params.get('tier') as 'solo' | 'firm' | 'enterprise') || 'enterprise';
   const [form, setForm] = useState({
@@ -165,5 +165,13 @@ export default function ContactSalesPage() {
 
       <MarketingFooter />
     </div>
+  );
+}
+
+export default function ContactSalesPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-white"><MarketingNav /></div>}>
+      <ContactSalesForm />
+    </Suspense>
   );
 }
