@@ -1,16 +1,21 @@
-import { Controller, Post, Param, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Post, Param, Query, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ReplacementService } from './replacement.service';
+import { ReplacementComparisonService } from './replacement-comparison.service.wrapper';
+import { ReplacementCompareInput } from './replacement-comparison.service';
 
 @ApiTags('replacement')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
-@Controller('portfolios/:portfolioId/replacements')
+@Controller()
 export class ReplacementController {
-  constructor(private readonly replacementService: ReplacementService) {}
+  constructor(
+    private readonly replacementService: ReplacementService,
+    private readonly comparison: ReplacementComparisonService,
+  ) {}
 
-  @Post()
+  @Post('portfolios/:portfolioId/replacements')
   @ApiOperation({ summary: 'Generate replacement fund suggestions for a portfolio' })
   findReplacements(
     @Param('portfolioId') portfolioId: string,
@@ -22,5 +27,15 @@ export class ReplacementController {
       screeningResultId,
       parseFloat(maxExposurePct),
     );
+  }
+
+  @Post('replacement/compare')
+  @ApiOperation({
+    summary: 'FAIS s8(1)(d) replacement comparison: existing vs proposed product',
+    description:
+      'Returns fee differential, break-even years, capitalised net benefit / cost over horizon, and required FAIS warnings (loyalty, surrender, guarantees, fees).',
+  })
+  compare(@Body() body: ReplacementCompareInput) {
+    return this.comparison.compare(body);
   }
 }
