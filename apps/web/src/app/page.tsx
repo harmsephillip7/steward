@@ -1,5 +1,30 @@
 import Link from 'next/link';
 
+const pricingTiers = [
+  {
+    name: 'Solo Advisor',
+    price: 'R 1 499',
+    sub: 'per advisor / month',
+    cta: { label: 'Start free trial', href: '/signup?tier=solo' },
+    highlights: ['All core modules', 'Up to 150 clients', '14-day free trial'],
+  },
+  {
+    name: 'Firm',
+    price: 'R 1 199',
+    sub: 'per advisor / month + R 999 platform fee',
+    cta: { label: 'Start free trial', href: '/signup?tier=firm' },
+    highlights: ['Everything in Solo', 'Team & RBAC', '3-seat minimum'],
+    popular: true,
+  },
+  {
+    name: 'Enterprise',
+    price: 'From R 35 000',
+    sub: 'per month + once-off setup',
+    cta: { label: 'Contact sales', href: '/contact-sales?tier=enterprise' },
+    highlights: ['Dedicated database', 'White-label branding', 'Custom SLA'],
+  },
+];
+
 const features = [
   {
     title: 'Christian Values Screening',
@@ -153,6 +178,67 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Pricing teaser */}
+      <section className="py-24 bg-brand-50">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="text-center mb-12">
+            <span className="text-xs font-semibold tracking-widest uppercase text-brand-500 mb-3 block">
+              Pricing
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-brand-900 mb-4">
+              Transparent, ZAR-only pricing
+            </h2>
+            <p className="text-muted-foreground max-w-xl mx-auto">
+              No hidden fees. Start with a 14-day free trial — no credit card required.
+            </p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-6 mb-10">
+            {pricingTiers.map((t) => (
+              <div
+                key={t.name}
+                className={`rounded-2xl p-8 flex flex-col ${
+                  t.popular
+                    ? 'border-2 border-brand-600 bg-white shadow-xl shadow-brand-100/60 relative'
+                    : 'border border-border bg-white'
+                }`}
+              >
+                {t.popular && (
+                  <span className="absolute -top-3 left-8 bg-brand-600 text-white text-[11px] font-bold tracking-wider uppercase px-3 py-1 rounded-full">
+                    Most popular
+                  </span>
+                )}
+                <h3 className="text-lg font-bold text-brand-900 mb-1">{t.name}</h3>
+                <div className="text-3xl font-extrabold text-brand-900 mt-3 mb-1">{t.price}</div>
+                <div className="text-xs text-muted-foreground mb-5">{t.sub}</div>
+                <ul className="space-y-2 text-sm text-foreground/80 flex-1 mb-6">
+                  {t.highlights.map((h) => (
+                    <li key={h} className="flex gap-2">
+                      <span className="text-brand-600">✓</span>
+                      {h}
+                    </li>
+                  ))}
+                </ul>
+                <Link
+                  href={t.cta.href}
+                  className={`block text-center font-semibold py-2.5 rounded-lg transition text-sm ${
+                    t.popular
+                      ? 'bg-brand-600 hover:bg-brand-500 text-white'
+                      : 'bg-brand-900 hover:bg-brand-800 text-white'
+                  }`}
+                >
+                  {t.cta.label}
+                </Link>
+              </div>
+            ))}
+          </div>
+          <div className="text-center">
+            <Link href="/pricing" className="text-sm font-medium text-brand-600 hover:text-brand-500 underline underline-offset-4">
+              See full pricing, add-ons &amp; FAQ →
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* CTA */}
       <section className="py-24 bg-gradient-to-b from-brand-900 via-brand-800 to-brand-900 text-white text-center relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,_rgba(255,255,255,0.04)_0%,_transparent_70%)]" />
@@ -173,12 +259,42 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-brand-950 py-10">
-        <div className="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-white/50">
-          <span>&copy; {new Date().getFullYear()} Steward. All rights reserved.</span>
-          <div className="flex gap-6">
-            <Link href="/login" className="hover:text-white transition">Sign In</Link>
-            <Link href="/signup" className="hover:text-white transition">Sign Up</Link>
+      <footer className="bg-brand-950 py-14">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-8 mb-10 text-sm text-white/50">
+            <div>
+              <div className="text-white font-bold text-lg mb-3">Steward</div>
+              <p className="leading-relaxed">
+                Faith-driven financial advisory software for South African advisors.
+              </p>
+            </div>
+            <div>
+              <div className="text-white/80 font-semibold mb-3 uppercase text-xs tracking-widest">Product</div>
+              <ul className="space-y-2">
+                <li><Link href="/pricing" className="hover:text-white transition">Pricing</Link></li>
+                <li><Link href="/for-firms" className="hover:text-white transition">For Firms</Link></li>
+                <li><Link href="/for-enterprise" className="hover:text-white transition">Enterprise</Link></li>
+                <li><Link href="/contact-sales" className="hover:text-white transition">Contact Sales</Link></li>
+              </ul>
+            </div>
+            <div>
+              <div className="text-white/80 font-semibold mb-3 uppercase text-xs tracking-widest">Trust</div>
+              <ul className="space-y-2">
+                <li><Link href="/security" className="hover:text-white transition">Security</Link></li>
+              </ul>
+            </div>
+            <div>
+              <div className="text-white/80 font-semibold mb-3 uppercase text-xs tracking-widest">Account</div>
+              <ul className="space-y-2">
+                <li><Link href="/login" className="hover:text-white transition">Sign In</Link></li>
+                <li><Link href="/signup" className="hover:text-white transition">Start Free Trial</Link></li>
+                <li><Link href="/client-portal/login" className="hover:text-white transition">Client Portal</Link></li>
+              </ul>
+            </div>
+          </div>
+          <div className="border-t border-white/10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-white/30">
+            <span>&copy; {new Date().getFullYear()} Steward. All rights reserved.</span>
+            <span>ZAR pricing, ex-VAT. 14-day free trial. No card required.</span>
           </div>
         </div>
       </footer>
