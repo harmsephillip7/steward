@@ -5,10 +5,11 @@ import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { usePortalAuth } from '../portal-auth';
 import { Button } from '@/components/ui/button';
-import { Home, Briefcase, Target, Shield, LogOut, PiggyBank } from 'lucide-react';
+import { Home, Briefcase, Target, Shield, LogOut, PiggyBank, Inbox } from 'lucide-react';
 
 const NAV = [
   { label: 'Dashboard', href: '/client-portal/dashboard', icon: Home },
+  { label: 'Inbox', href: '/client-portal/dashboard/inbox', icon: Inbox },
   { label: 'Portfolios', href: '/client-portal/dashboard/portfolios', icon: Briefcase },
   { label: 'Goals', href: '/client-portal/dashboard/goals', icon: Target },
   { label: 'Insurance', href: '/client-portal/dashboard/insurance', icon: Shield },

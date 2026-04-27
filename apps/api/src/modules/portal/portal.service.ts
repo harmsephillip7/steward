@@ -1,13 +1,15 @@
-import { Injectable, UnauthorizedException, NotFoundException, ConflictException, BadRequestException, GoneException, Logger } from '@nestjs/common';
+import { Injectable, UnauthorizedException, NotFoundException, ConflictException, BadRequestException, GoneException, ForbiddenException, Logger } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 import * as jwt from 'jsonwebtoken';
 import { ClientPortalUser } from './entities/client-portal-user.entity';
 import { ClientOnboardingToken } from './entities/client-onboarding-token.entity';
 import { Client } from '../clients/entities/client.entity';
+import { Report } from '../reports/entities/report.entity';
+import { ReportsService } from '../reports/reports.service';
 
 @Injectable()
 export class PortalService {
@@ -17,6 +19,8 @@ export class PortalService {
     @InjectRepository(ClientPortalUser) private portalUserRepo: Repository<ClientPortalUser>,
     @InjectRepository(ClientOnboardingToken) private tokenRepo: Repository<ClientOnboardingToken>,
     @InjectRepository(Client) private clientRepo: Repository<Client>,
+    @InjectRepository(Report) private reportRepo: Repository<Report>,
+    private reportsService: ReportsService,
     private config: ConfigService,
   ) {}
 
@@ -78,6 +82,78 @@ export class PortalService {
     const { Document } = await import('../documents/entities/document.entity');
     // Direct query to avoid circular imports
     return [];
+  }
+
+  // ── Reports inbox ────────────────────────────────────────────
+
+  /** All reports that have been sent (or already decided) for this client. */
+  async getInbox(clientId: string) {
+    const rows = await this.reportRepo.find({
+      where: {
+        client_id: clientId,
+        status: In(['sent_to_client', 'accepted', 'declined', 'expired']),
+      },
+      order: { sent_at: 'DESC' },
+    });
+    return rows.map((r) => ({
+      id: r.id,
+      type: r.type,
+      title: r.title,
+      status: r.status,
+      sent_at: r.sent_at,
+      decided_at: r.decided_at,
+      signiflow_envelope_id: r.signiflow_envelope_id,
+    }));
+  }
+
+  async getInboxReport(clientId: string, reportId: string) {
+    const r = await this.reportRepo.findOne({ where: { id: reportId, client_id: clientId } });
+    if (!r) throw new NotFoundException('Report not found');
+    if (!['sent_to_client', 'accepted', 'declined', 'expired'].includes(r.status)) {
+      throw new ForbiddenException('Report not visible');
+    }
+    return {
+      id: r.id,
+      type: r.type,
+      title: r.title,
+      status: r.status,
+      sent_at: r.sent_at,
+      decided_at: r.decided_at,
+      payload: r.payload,
+      pdf_sha256: r.pdf_sha256,
+      pdf_url: r.pdf_url,
+      decline_reason: r.decline_reason,
+      signature: r.signature,
+    };
+  }
+
+  async downloadInboxReport(clientId: string, reportId: string) {
+    const r = await this.reportRepo.findOne({ where: { id: reportId, client_id: clientId } });
+    if (!r) throw new NotFoundException('Report not found');
+    if (!['sent_to_client', 'accepted', 'declined', 'expired'].includes(r.status)) {
+      throw new ForbiddenException('Report not visible');
+    }
+    return this.reportsService.download(r.advisor_id, reportId);
+  }
+
+  async acceptInboxReport(
+    clientId: string,
+    reportId: string,
+    body: { typed_name: string; ip_address?: string; user_agent?: string },
+  ) {
+    const r = await this.reportRepo.findOne({ where: { id: reportId, client_id: clientId } });
+    if (!r) throw new NotFoundException('Report not found');
+    return this.reportsService.recordAcceptance(reportId, body);
+  }
+
+  async declineInboxReport(
+    clientId: string,
+    reportId: string,
+    body: { reason: string; ip_address?: string; user_agent?: string },
+  ) {
+    const r = await this.reportRepo.findOne({ where: { id: reportId, client_id: clientId } });
+    if (!r) throw new NotFoundException('Report not found');
+    return this.reportsService.recordDecline(reportId, body.reason, body);
   }
 
   async getPortalGoals(clientId: string) {
