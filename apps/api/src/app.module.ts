@@ -59,6 +59,9 @@ import { DocumentsModule } from './modules/documents/documents.module';
 import { AdvisoryRecommendation } from './modules/advisory/entities/advisory-recommendation.entity';
 import { AdvisoryModule } from './modules/advisory/advisory.module';
 
+// Entities — reports
+import { Report as ReportEntity } from './modules/reports/entities/report.entity';
+
 // Entities — enhanced compliance
 import { ComplianceReview, ConflictOfInterest, RegulatoryReturn } from './modules/compliance/entities/enhanced-compliance.entity';
 
@@ -131,6 +134,8 @@ import { BudgetModule } from './modules/budget/budget.module';
           MessagingConnection, Message, MessageTemplate,
           // Budget
           BudgetStatement, BudgetAnalysis,
+          // Reports
+          ReportEntity,
         ],
         synchronize: config.get<string>('NODE_ENV') !== 'production',
         logging: false,

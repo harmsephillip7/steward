@@ -45,6 +45,7 @@ import { BudgetAnalysis } from '../modules/budget/entities/budget-analysis.entit
 import { MessagingConnection } from '../modules/messaging/entities/messaging-connection.entity';
 import { Message } from '../modules/messaging/entities/message.entity';
 import { MessageTemplate } from '../modules/messaging/entities/message-template.entity';
+import { Report as ReportEntity } from '../modules/reports/entities/report.entity';
 
 const databaseUrl = process.env.DATABASE_URL;
 
@@ -102,6 +103,7 @@ const AppDataSource = new DataSource({
     MessagingConnection,
     Message,
     MessageTemplate,
+    ReportEntity,
   ],
   migrations: ['dist/config/migrations/*.js'],
   synchronize: false,
